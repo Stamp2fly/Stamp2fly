@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+
+:root {
+  --color-blue: #3b82f6;
+  --color-emerald: #10b981;
+  --color-yellow: #f59e0b;
+  --color-red: #ef4444;
+  --color-purple: #8b5cf6;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  @apply bg-slate-50 text-slate-800;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+}
