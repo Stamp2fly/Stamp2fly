@@ -1,170 +1,288 @@
-import React, { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
-import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { CheckCircle, HelpCircle, FileText, XCircle, ExternalLink, ArrowRight } from 'lucide-react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { useVisa } from '@/contexts/VisaContext';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect, useRef } from "react";
+import { Helmet } from "react-helmet-async";
+import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+	CheckCircle,
+	HelpCircle,
+	FileText,
+	XCircle,
+	ExternalLink,
+	ArrowRight,
+	Share2,
+	Download,
+} from "lucide-react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { useVisa } from "@/contexts/VisaContext";
+import { Button } from "@/components/ui/button";
+import BackButton from "../components/Admin/BackButton";
 
 function VisaRequirementPage() {
-  const { destination: destSlug } = useParams();
-  const navigate = useNavigate();
-  const { search } = useLocation();
-  const { visaData } = useVisa();
+	const { destination: destSlug } = useParams();
+	const navigate = useNavigate();
+	const { search } = useLocation();
+	const { visaData } = useVisa();
+	const checklistRef = useRef();
 
-  const [countryData, setCountryData] = useState(null);
-  const [nationality, setNationality] = useState('India');
-  const [destinationName, setDestinationName] = useState('');
+	const [countryData, setCountryData] = useState(null);
+	const [nationality, setNationality] = useState("India");
+	const [destinationName, setDestinationName] = useState("");
 
-  useEffect(() => {
-    const queryParams = new URLSearchParams(search);
-    setNationality(queryParams.get('nationality') || 'India');
+	const flagUrl = countryData?.isoCode
+		? `https://flagcdn.com/w320/${countryData.isoCode.toLowerCase()}.png`
+		: null;
 
-    const foundEntry = Object.entries(visaData).find(
-      ([name]) => name.toLowerCase().replace(/\s+/g, '-') === destSlug
-    );
-    
-    if (foundEntry) {
-      setDestinationName(foundEntry[0]);
-      setCountryData(foundEntry[1]);
-    } else {
-      setCountryData(null);
-    }
-  }, [destSlug, search, visaData]);
+	useEffect(() => {
+		const queryParams = new URLSearchParams(search);
+		setNationality(queryParams.get("nationality") || "India");
 
-  const handleApply = () => {
-    navigate('/pricing', { state: { destination: destinationName, nationality: nationality } });
-  };
-  
-  if (!countryData) {
-    return (
-      <>
-        <Header />
-        <main className="min-h-[80vh] bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-gray-800">Visa Information Not Found</h1>
-            <p className="text-lg text-gray-600 mt-2">We couldn't find visa details for this destination.</p>
-            <Button asChild className="mt-6">
-              <Link to="/">Go Back Home</Link>
-            </Button>
-          </div>
-        </main>
-        <Footer />
-      </>
-    );
-  }
+		const foundEntry = Object.entries(visaData).find(
+			([name]) => name.toLowerCase().replace(/\s+/g, "-") === destSlug,
+		);
 
-  const pageTitle = `${destinationName} Visa Requirements | Stamp2Fly`;
-  const pageDescription = `Find the latest visa requirements, document checklist, processing time, and fees for ${destinationName}. Apply online with Stamp2Fly.`;
-  
-  const getDocumentList = () => {
-    const checklist = countryData.checklist;
-    if (!checklist) return [];
-    let docs = [];
-    if (checklist.base) docs = docs.concat(checklist.base);
-    // In a real app, you'd add logic for other categories like 'employed'
-    return docs;
-  };
+		if (foundEntry) {
+			setDestinationName(foundEntry[0]);
+			setCountryData(foundEntry[1]);
+		} else {
+			setCountryData(null);
+		}
+	}, [destSlug, search, visaData]);
 
-  const documentList = getDocumentList();
+	const handleApply = () => {
+		navigate("/pricing", {
+			state: { destination: destinationName, nationality },
+		});
+	};
 
-  const faqSchema = countryData.faq && countryData.faq.length > 0 ? {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": countryData.faq.map(item => ({
-      "@type": "Question",
-      "name": item.q,
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": item.a
-      }
-    }))
-  } : null;
+	const handleShare = () => {
+		if (navigator.share) {
+			navigator.share({
+				title: `${destinationName} Visa Checklist`,
+				url: window.location.href,
+			});
+		} else {
+			alert("Sharing not supported on this device");
+		}
+	};
 
-  return (
-    <>
-      <Helmet>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDescription} />
-        <link rel="canonical" href={`https://www.stamp2fly.com/visa-requirements/${destSlug}${search}`} />
-        {faqSchema && <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>}
-      </Helmet>
-      
-      <Header />
-      
-      <main className="bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <div className="text-center mb-12">
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tighter">
-                {countryData.flag} {destinationName} Visa
-              </h1>
-              <p className="mt-3 text-lg text-gray-600">
-                Requirements for citizens of {nationality}.
-              </p>
-              {countryData.source && (
-                <a href={countryData.source} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center text-sm text-blue-600 hover:text-blue-800">
-                  Official Government Source <ExternalLink className="ml-1 w-4 h-4" />
-                </a>
-              )}
-            </div>
+	const handleDownload = () => {
+		const printContents = checklistRef.current.innerHTML;
+		const printWindow = window.open("", "", "height=600,width=800");
 
-             <div className="bg-blue-600 text-white rounded-2xl shadow-lg p-8 mb-8 text-center">
-                <h3 className="text-2xl font-bold">Ready to apply?</h3>
-                <p className="mt-2 opacity-90">Our experts will guide you through every step.</p>
-                <Button onClick={handleApply} variant="secondary" className="mt-6 bg-white text-blue-600 hover:bg-gray-100 w-full sm:w-auto px-10 group">
-                    See Options & Apply <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
-                </Button>
-            </div>
+		printWindow.document.write(`
+    <html>
+      <head>
+        <title>${destinationName} Visa Checklist</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+          }
+          h2 {
+            margin-bottom: 20px;
+          }
+          ul {
+            list-style: none;
+            padding: 0;
+          }
+          li {
+            margin-bottom: 10px;
+          }
+        </style>
+      </head>
+      <body>
+        <h2>${destinationName} Visa Checklist</h2>
+        ${printContents}
+      </body>
+    </html>
+  `);
 
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="bg-white rounded-2xl shadow-md border border-gray-200/80 p-8">
-                <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
-                  <FileText className="w-6 h-6 mr-3 text-blue-600" />
-                  Document Checklist
-                </h3>
-                <ul className="space-y-4">
-                  {documentList.map(item => (
-                    <li key={item.key} className="flex items-start">
-                      <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-1 flex-shrink-0" />
-                      <div>
-                        <span className="font-medium text-gray-800">{item.name}</span>
-                        <p className="text-gray-600 text-sm">{item.description}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+		printWindow.document.close();
+		printWindow.focus();
+		printWindow.print();
+		printWindow.close();
+	};
 
-              <div className="space-y-8">
-                {countryData.faq && countryData.faq.length > 0 && (
-                  <div className="bg-white rounded-2xl shadow-md border border-gray-200/80 p-8">
-                    <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
-                      <HelpCircle className="w-6 h-6 mr-3 text-blue-600" />
-                      Common Questions
-                    </h3>
-                    <div className="space-y-6">
-                      {countryData.faq.map((item, index) => (
-                        <div key={index}>
-                          <h4 className="font-semibold text-gray-800">{item.q}</h4>
-                          <p className="text-gray-600 mt-1 text-sm">{item.a}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </main>
-      
-      <Footer />
-    </>
-  );
+	if (!countryData) {
+		return (
+			<>
+				<Header />
+				<main className="min-h-[80vh] bg-gray-50 flex items-center justify-center">
+					<div className="text-center">
+						<XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+						<h1 className="text-2xl font-bold text-gray-800">
+							Visa Information Not Found
+						</h1>
+						<Button asChild className="mt-6">
+							<Link to="/">Go Back Home</Link>
+						</Button>
+					</div>
+				</main>
+				<Footer />
+			</>
+		);
+	}
+
+	const pageTitle = `${destinationName} Visa Requirements | Stamp2Fly`;
+
+	const documentList = countryData.checklist?.base || [];
+
+	return (
+		<>
+			<Helmet>
+				<title>{pageTitle}</title>
+			</Helmet>
+
+			<Header />
+			<BackButton />
+			
+
+			<main className="bg-gray-50">
+				<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+					<motion.div
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.4 }}
+					>
+						{/* HERO */}
+						<div className="bg-white rounded-2xl shadow-md p-10 mb-8 text-center">
+							{flagUrl && (
+								<div className="flex justify-center mb-4">
+									<img
+										src={flagUrl}
+										alt={destinationName}
+										className="w-100 h-300 rounded-md shadow-sm"
+									/>
+								</div>
+							)}
+
+							<h1 className="text-4xl md:text-5xl font-bold text-gray-900">
+								{destinationName} Visa
+							</h1>
+
+							{/* Category Badge */}
+							<div className="mt-4">
+								<span className="bg-blue-100 text-blue-700 text-sm font-medium px-4 py-1 rounded-full">
+									{countryData.options?.[0]?.name || "Tourist Visa"}
+								</span>
+							</div>
+
+							<p className="mt-4 text-lg text-gray-600">
+								Requirements for citizens of {nationality}.
+							</p>
+
+							{countryData.source && (
+								<a
+									href={countryData.source}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="mt-4 inline-flex items-center text-blue-600 font-medium hover:text-blue-800"
+								>
+									Official Government Source
+									<ExternalLink className="ml-2 w-4 h-4" />
+								</a>
+							)}
+						</div>
+
+						{/* PROCESSING TIME */}
+						<div className="bg-white rounded-2xl shadow-md p-6 mb-8">
+							<h3 className="text-lg font-semibold text-gray-800 mb-2">
+								Processing Time
+							</h3>
+							<p className="text-gray-600">
+								{countryData.options?.[0]?.processingTime || "Varies"}
+							</p>
+						</div>
+
+						{/* CTA */}
+						<div className="bg-blue-600 text-white rounded-2xl shadow-lg p-8 mb-8 text-center">
+							<h3 className="text-2xl font-bold">Ready to apply?</h3>
+							<p className="mt-2 opacity-90">
+								Our experts will guide you through every step.
+							</p>
+							<Button
+								onClick={handleApply}
+								variant="secondary"
+								className="mt-6 bg-white text-blue-600 hover:bg-gray-100 px-10"
+							>
+								See Options & Apply
+								<ArrowRight className="w-4 h-4 ml-2" />
+							</Button>
+						</div>
+
+						{/* CHECKLIST */}
+						<div
+							ref={checklistRef}
+							className="bg-white rounded-2xl shadow-md border border-gray-200 p-8 mb-8"
+						>
+							<div className="flex justify-between items-center mb-6">
+								<h3 className="text-xl font-bold text-gray-800 flex items-center">
+									<FileText className="w-6 h-6 mr-3 text-blue-600" />
+									Standard Visa Checklist
+								</h3>
+
+								<div className="flex gap-4">
+									<button
+										onClick={handleDownload}
+										className="flex items-center text-sm text-gray-600 hover:text-blue-600"
+									>
+										<Download className="w-4 h-4 mr-1" />
+										Download
+									</button>
+
+									<button
+										onClick={handleShare}
+										className="flex items-center text-sm text-gray-600 hover:text-blue-600"
+									>
+										<Share2 className="w-4 h-4 mr-1" />
+										Share
+									</button>
+								</div>
+							</div>
+
+							<ul className="space-y-4">
+								{documentList.map((item) => (
+									<li key={item.key} className="flex items-start">
+										<CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-1" />
+										<div>
+											<span className="font-medium text-gray-800">
+												{item.name}
+											</span>
+											<p className="text-gray-600 text-sm">
+												{item.description}
+											</p>
+										</div>
+									</li>
+								))}
+							</ul>
+						</div>
+
+						{/* FAQ */}
+						{countryData.faq?.length > 0 && (
+							<div className="bg-white rounded-2xl shadow-md border border-gray-200 p-8">
+								<h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
+									<HelpCircle className="w-6 h-6 mr-3 text-blue-600" />
+									Common Questions
+								</h3>
+
+								<div className="space-y-6">
+									{countryData.faq.map((item, index) => (
+										<div key={index}>
+											<h4 className="font-semibold text-gray-800">{item.q}</h4>
+											<p className="text-gray-600 mt-1 text-sm">{item.a}</p>
+										</div>
+									))}
+								</div>
+							</div>
+						)}
+					</motion.div>
+				</div>
+			</main>
+
+			<Footer />
+		</>
+	);
 }
 
 export default VisaRequirementPage;

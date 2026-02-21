@@ -36,12 +36,12 @@ function PaymentPage() {
         <section className="py-8 bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <Button
-              onClick={() => navigate('/documents', { state: applicationData })}
+              onClick={() => navigate('/apply', { state: applicationData })}
               variant="outline"
               className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Back to Documents</span>
+              <span>Back to Application</span>
             </Button>
           </div>
         </section>

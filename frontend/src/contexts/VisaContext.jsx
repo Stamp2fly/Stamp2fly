@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 
 const initialVisaData = {
   'United Arab Emirates': {
+    isoCode: 'ae',
     flag: '🇦🇪',
     source: "https://u.ae/en/information-and-services/visa-and-emirates-id/do-you-need-an-entry-permit-or-a-visa-to-enter-the-uae",
     options: [
@@ -34,6 +35,7 @@ const initialVisaData = {
     ],
   },
   'Singapore': {
+    isoCode: 'sg',
     flag: '🇸🇬',
     source: "https://www.ica.gov.sg/enter-transit-depart/entering-singapore/visa_requirements",
     options: [
@@ -57,6 +59,7 @@ const initialVisaData = {
     ]
   },
   'United States': {
+    isoCode: 'us',
     flag: '🇺🇸',
     source: "https://travel.state.gov/content/travel/en/us-visas/tourism-visit/visitor.html",
     options: [
@@ -79,6 +82,7 @@ const initialVisaData = {
     ]
   },
    'Canada': {
+    isoCode: 'ca',
     flag: '🇨🇦',
     source: "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada.html",
     options: [
@@ -102,6 +106,7 @@ const initialVisaData = {
     ]
   },
   'United Kingdom': {
+    isoCode: 'gb',
     flag: '🇬🇧',
     source: "https://www.gov.uk/standard-visitor-visa",
     options: [
@@ -127,6 +132,7 @@ const initialVisaData = {
     ]
   },
   'Australia': {
+    isoCode: 'au',  
     flag: '🇦🇺',
     source: "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/visitor-600",
     options: [

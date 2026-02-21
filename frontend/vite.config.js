@@ -244,6 +244,7 @@ export default defineConfig({
 		cors: true,
 		headers: {
 			'Cross-Origin-Embedder-Policy': 'credentialless',
+			"X-Frame-Options": "ALLOWALL",
 		},
 		allowedHosts: true,
 	},
