@@ -17,6 +17,7 @@ import Footer from "@/components/Footer";
 import { useVisa } from "@/contexts/VisaContext";
 import { Button } from "@/components/ui/button";
 import BackButton from "../components/Admin/BackButton";
+import WhatsAppButton from "../components/WhatsAppButton";
 
 function VisaRequirementPage() {
 	const { destination: destSlug } = useParams();
@@ -124,19 +125,62 @@ function VisaRequirementPage() {
 		);
 	}
 
-	const pageTitle = `${destinationName} Visa Requirements | Stamp2Fly`;
+	const pageTitle = `${destinationName} Visa Requirements for Indian Citizens | Stamp2Fly`;
 
 	const documentList = countryData.checklist?.base || [];
+	const faqSchema = countryData.faq?.length > 0
+		? {
+			"@context": "https://schema.org",
+			"@type": "FAQPage",
+			"mainEntity": countryData.faq.map(item => ({
+				"@type": "Question",
+				"name": item.q,
+				"acceptedAnswer": {
+					"@type": "Answer",
+					"text": item.a
+				}
+			}))
+		}
+		: null;
 
 	return (
 		<>
 			<Helmet>
 				<title>{pageTitle}</title>
+				<meta
+					name="description"
+					content={`Check updated ${destinationName} visa requirements for Indian citizens. View documents required, processing time, eligibility and apply online with Stamp2Fly.`}
+				/>
+				<link
+					rel="canonical"
+					href={`https://www.stamp2fly.com/visa-requirements/${destSlug}`}
+				/>
+				{faqSchema && (
+					<script type="application/ld+json">
+						{JSON.stringify(faqSchema)}
+					</script>
+				)}
+				<meta property="og:title" content={pageTitle} />
+				<meta
+					property="og:description"
+					content={`Updated ${destinationName} visa requirements for Indian citizens.`}
+				/>
+				<meta
+					property="og:url"
+					content={`https://www.stamp2fly.com/visa-requirements/${destSlug}`}
+				/>
+				<meta property="og:type" content="article" />
+				<meta name="twitter:card" content="summary" />
+				<meta name="twitter:title" content={pageTitle} />
+				<meta
+					name="twitter:description"
+					content={`Updated ${destinationName} visa requirements for Indian citizens.`}
+				/>
 			</Helmet>
 
 			<Header />
 			<BackButton />
-			
+
 
 			<main className="bg-gray-50">
 				<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -158,7 +202,7 @@ function VisaRequirementPage() {
 							)}
 
 							<h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-								{destinationName} Visa
+								{destinationName} Visa Requirements for Indian Citizens
 							</h1>
 
 							{/* Category Badge */}
@@ -169,7 +213,7 @@ function VisaRequirementPage() {
 							</div>
 
 							<p className="mt-4 text-lg text-gray-600">
-								Requirements for citizens of {nationality}.
+								Complete checklist and processing details for {nationality} passport holders.
 							</p>
 
 							{countryData.source && (
@@ -187,9 +231,9 @@ function VisaRequirementPage() {
 
 						{/* PROCESSING TIME */}
 						<div className="bg-white rounded-2xl shadow-md p-6 mb-8">
-							<h3 className="text-lg font-semibold text-gray-800 mb-2">
+							<h2 className="text-lg font-semibold text-gray-800 mb-2">
 								Processing Time
-							</h3>
+							</h2>
 							<p className="text-gray-600">
 								{countryData.options?.[0]?.processingTime || "Varies"}
 							</p>
@@ -210,6 +254,11 @@ function VisaRequirementPage() {
 								<ArrowRight className="w-4 h-4 ml-2" />
 							</Button>
 						</div>
+						
+						<p className="mb-6 text-gray-700">
+							Below are the latest {destinationName} visa requirements for Indian passport holders.
+							Ensure all documents are complete before submitting your application to avoid delays.
+						</p>
 
 						{/* CHECKLIST */}
 						<div
@@ -278,6 +327,7 @@ function VisaRequirementPage() {
 						)}
 					</motion.div>
 				</div>
+				<WhatsAppButton />
 			</main>
 
 			<Footer />

@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { useVisa } from "@/contexts/VisaContext";
 import { cn } from "@/lib/utils";
 import BackButton from "../components/Admin/BackButton";
+import WhatsAppButton from "../components/WhatsAppButton";
 
 function PricingPage() {
 	const location = useLocation();
@@ -242,6 +243,7 @@ function PricingPage() {
 							</div>
 					</div>
 				</section>
+				<WhatsAppButton	/>
 			</main>
 			<Footer />
 		</>

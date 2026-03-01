@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-  
+import WhatsAppButton from "../components/WhatsAppButton";
+import MapEmbed from "../components/MapEmbed";
+import BackButton from "../components/Admin/BackButton";
+
 const ContactPage = () => {
 	// To integrate a toast notification system that provides users with immediate feedback when they submit the contact form, enhancing user experience and engagement.
 	const { toast } = useToast();
@@ -41,6 +44,7 @@ const ContactPage = () => {
 			{/* Main content */}
 			<main className="bg-white">
 				{/* Get in touch section */}
+				<BackButton/>
 				<section className="py-20 bg-gradient-to-br from-blue-50 to-white">
 					<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
 						<motion.div
@@ -93,24 +97,46 @@ const ContactPage = () => {
 										<div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
 											<MapPin className="w-6 h-6 text-blue-600" />
 										</div>
-										<div>
+										<div className="w-full">
 											<h3 className="text-lg font-semibold">Address</h3>
-											<p className="text-gray-600">
+											<p className="text-gray-600 mb-4">
 												MASTER MIND 4, OFFICE NO A321, C.T.S NO 1627, ROYAL
 												PALM. GOREGAON EAST MUMBAI BORIVALI 400065
 											</p>
-											
+											<MapEmbed/>
+
+											{/* <div className="rounded-xl overflow-hidden shadow-sm border border-gray-100">
+												<iframe
+													src="https://maps.google.com/maps?q=Master%20Mind%204,%20Royal%20Palm,%20Goregaon%20East,%20Mumbai&t=&z=15&ie=UTF8&iwloc=&output=embed"
+													width="100%"
+													height="250"
+													style={{ border: 0 }}
+													allowFullScreen=""
+													loading="lazy"
+													referrerPolicy="no-referrer-when-downgrade"
+													title="Stamp2Fly Office Location"
+												/>
+											</div>
+											<a
+												href="https://maps.google.com/?q=MASTER+MIND+4,+OFFICE+NO+A321,+ROYAL+PALM,+GOREGAON+EAST,+MUMBAI+400065"
+												target="_blank"
+												rel="noopener noreferrer"
+												className="mt-3 inline-block text-sm text-blue-600 hover:text-blue-700 underline"
+											>
+												Open in Google Maps
+											</a> */}
 										</div>
 									</div>
 								</div>
 							</motion.div>
+
 							<motion.div
 								initial={{ opacity: 0, x: 20 }}
 								animate={{ opacity: 1, x: 0 }}
 								transition={{ duration: 0.5, delay: 0.1 }}
 								className="bg-gray-50 p-8 rounded-2xl"
 							>
-								{/* Form Section on the left */}
+								{/* Form Section on the right */}
 								<h2 className="text-3xl font-bold text-gray-900 mb-6">
 									Send us a Message
 								</h2>
@@ -160,6 +186,7 @@ const ContactPage = () => {
 						</div>
 					</div>
 				</section>
+				<WhatsAppButton />
 			</main>
 			<Footer />
 		</>

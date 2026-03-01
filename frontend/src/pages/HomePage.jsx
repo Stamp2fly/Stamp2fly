@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import VisaSearch from "@/components/VisaSearch";
 import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
+import WhatsAppButton from "../components/WhatsAppButton";
 
 function HomePage() {
 	const navigate = useNavigate();
@@ -12,29 +13,47 @@ function HomePage() {
 	// Structured data for SEO
 	const organizationSchema = {
 		"@context": "https://schema.org",
-		"@type": "Organization",
-		name: "Stamp2Fly Professional Services",
-		url: "https://www.stamp2fly.com",
-		logo: "https://storage.googleapis.com/hostinger-horizons-assets-prod/ac7c5e33-833b-415b-87a1-38b5119ebfe9/1e7b9ac90d11a07facf22532137e65d6.png",
-		contactPoint: {
-			"@type": "ContactPoint",
-			telephone: "+91-900-438-7497",
-			contactType: "Customer Service",
+		"@type": "TravelAgency",
+		"name": "Stamp2Fly",
+		"image": "https://storage.googleapis.com/hostinger-horizons-assets-prod/ac7c5e33-833b-415b-87a1-38b5119ebfe9/1e7b9ac90d11a07facf22532137e65d6.png",
+		"url": "https://www.stamp2fly.com",
+		"telephone": "+91 88501 89216",
+		"address": {
+			"@type": "PostalAddress",
+			"streetAddress": "MASTER MIND 4, Office No A321, C.T.S No 1627, Royal Palm",
+			"addressLocality": "Goregaon East",
+			"addressRegion": "Mumbai, Maharashtra",
+			"postalCode": "400065",
+			"addressCountry": "IN"
 		},
+		"areaServed": {
+			"@type": "Country",
+			"name": "India"
+		}
 	};
 
 	return (
 		<>
 			<Helmet>
-				<title>Stamp2Fly - Simple & Fast Visa Application Services</title>
+				<title>Visa Services in India | Fast & Simple Online Visa Assistance - Stamp2Fly</title>
 				<meta
 					name="description"
-					content="Get your visa hassle-free with Stamp2Fly. We simplify the visa application process with clear instructions, transparent pricing, and expert support."
+					content="Apply for tourist and business visas online with Stamp2Fly. Fast processing, transparent pricing, and expert visa assistance across India. Get your visa hassle-free today!"
 				/>
+				
 				<meta
 					name="keywords"
 					content="visa services, visa application, e-visa, fast visa, simple visa, visa online"
 				/>
+				<meta property="og:title" content="Visa Services in India | Stamp2Fly" />
+				<meta property="og:description" content="Fast and reliable visa assistance across India." />
+				<meta property="og:type" content="website" />
+				<meta property="og:url" content="https://www.stamp2fly.com/" />
+				<meta property="og:image" content="https://www.stamp2fly.com/og-image.jpg" />
+				<meta name="twitter:card" content="summary_large_image" />
+				<meta name="twitter:title" content="Visa Services in India - Stamp2Fly" />
+				<meta name="twitter:description" content="Apply for visas online with expert support." />
+				<meta name="twitter:image" content="https://www.stamp2fly.com/og-image.jpg" />
 				<link rel="canonical" href="https://www.stamp2fly.com/" />
 				<script type="application/ld+json">
 					{JSON.stringify(organizationSchema)}
@@ -63,7 +82,8 @@ function HomePage() {
 							transition={{ duration: 0.7 }}
 							className="text-4xl md:text-6xl font-bold text-gray-900 tracking-tight"
 						>
-							Get your visa, hassle-free
+							{/* Get your visa, hassle-free */}
+							Fast & Simple Online Visa Application Services
 						</motion.h1>
 
 						<motion.p
@@ -72,8 +92,9 @@ function HomePage() {
 							transition={{ duration: 0.7, delay: 0.2 }}
 							className="mt-6 text-lg text-gray-700 max-w-2xl mx-auto"
 						>
-							We’ve helped thousands of people get their visas. We can help you
-							get yours, too.
+							{/* We’ve helped thousands of people get their visas. We can help you
+							get yours, too. */}
+							Get your visa, hassle-free with expert support and transparent pricing.
 						</motion.p>
 					</div>
 
@@ -147,7 +168,7 @@ function HomePage() {
 						</div>
 					</div>
 				</section>
-				
+
 				{/* ================= HOW IT WORKS SECTION ================= */}
 				<section
 					id="how-it-works"
@@ -231,6 +252,7 @@ function HomePage() {
 						</div>
 					</div>
 				</section>
+				<WhatsAppButton />
 			</main>
 
 			<Footer />

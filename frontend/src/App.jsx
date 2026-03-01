@@ -16,7 +16,7 @@ import { VisaProvider } from '@/contexts/VisaContext';
 import { ApplicationProvider } from '@/contexts/ApplicationContext';
 import AboutUsPage from './pages/AboutUsPage';
 import ServicesPage from './pages/ServicesPage';
-import UaeVisaStatusPage from './pages/UaeVisaStatusPage';
+// import UaeVisaStatusPage from './pages/UaeVisaStatusPage';
 
 const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('isAdminAuthenticated') === 'true');
@@ -62,7 +62,7 @@ function App() {
                 <Route path="/consultation" element={<ConsultationPage />} />
                 <Route path="/about" element={<AboutUsPage />} />
                 <Route path="/services" element={<ServicesPage />} />
-                <Route path="/uae-visa-status" element={<UaeVisaStatusPage />} />
+                {/* <Route path="/uae-visa-status" element={<UaeVisaStatusPage />} /> */}
                 
                 <Route path="/admin/login" element={<AdminLogin onLogin={login} />} />
                 <Route 

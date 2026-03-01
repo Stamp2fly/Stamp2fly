@@ -85,7 +85,7 @@ function Header() {
 							asChild
 							className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6"
 						>
-							<Link to="/login">Login</Link>
+							<Link to="/contact">Contact us</Link>
 						</Button>
 					</div>
 				</div>
