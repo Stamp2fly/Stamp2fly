@@ -4,90 +4,72 @@ import { motion } from "framer-motion";
 import { Phone, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
-function Header() {
+function Header(props) {
+	const navigate = useNavigate();
 	const location = useLocation();
 	const isHomePage = location.pathname === "/";
 	return (
 		<header className="bg-white/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-200">
-			<div className="max-w-1xl mx-auto px-3 sm:px-4 lg:px-8">
-				{/* Main Header Row */}
+			<div className="max-w-7xl mx-auto px-4 lg:px-8">
 				<div className="flex items-center justify-between h-16 sm:h-20">
-					{/* LEFT - Logo */}
-					<div className="flex items-center">
-						<Link to="/" className="flex items-center space-x-1 sm:space-x-2">
-							<motion.div
-								initial={{ opacity: 0, x: -20 }}
-								animate={{ opacity: 1, x: 0 }}
-								transition={{ duration: 0.5 }}
-								className="flex items-center space-x-1 sm:space-x-2"
-							>
-								<img
-									src="https://storage.googleapis.com/hostinger-horizons-assets-prod/ac7c5e33-833b-415b-87a1-38b5119ebfe9/1e7b9ac90d11a07facf22532137e65d6.png"
-									alt="Stamp2Fly Brandmark"
-									className="h-6 sm:h-8 w-auto"
-								/>
-								<span className="text-sm sm:text-xl font-bold text-gray-800">
-									Stamp2Fly
-								</span>
-							</motion.div>
-						</Link>
-					</div>
 
-					{/* CENTER - Navigation */}
+					{/* LEFT - Logo */}
+					<Link to="/" className="flex items-center space-x-2">
+						<motion.div
+							initial={{ opacity: 0, x: -20 }}
+							animate={{ opacity: 1, x: 0 }}
+							transition={{ duration: 0.5 }}
+							className="flex items-center space-x-2"
+						>
+							<img
+								src="https://storage.googleapis.com/hostinger-horizons-assets-prod/ac7c5e33-833b-415b-87a1-38b5119ebfe9/1e7b9ac90d11a07facf22532137e65d6.png"
+								alt="Stamp2Fly Brandmark"
+								className="h-8 w-auto"
+							/>
+							<span className="text-xl font-bold text-gray-800">
+								Stamp2Fly
+							</span>
+						</motion.div>
+					</Link>
+
+					{/* CENTER - Navigation (Desktop only) */}
 					{isHomePage && (
-						<div className="hidden md:flex items-center gap-10 font-medium">
-							<a
-								href="#apply"
-								className="text-gray-700 hover:text-blue-600 transition-colors"
-							>
+						<div className="hidden md:flex items-center gap-8 font-medium">
+							<a href="#apply" className="text-gray-700 hover:text-blue-600 transition">
 								Apply Visa
 							</a>
-
-							<a
-								href="#checklist"
-								className="text-gray-700 hover:text-blue-600 transition-colors"
-							>
+							<a href="#checklist" className="text-gray-700 hover:text-blue-600 transition">
 								Visa Checklist
 							</a>
-							<a
-								href="#how-it-works"
-								className="text-gray-700 hover:text-blue-600 transition-colors"
-							>
+							<a href="#how-it-works" className="text-gray-700 hover:text-blue-600 transition">
 								How It Works
 							</a>
 						</div>
 					)}
 
-					{/* RIGHT - Contact + Login */}
-					<div className="hidden lg:flex items-center gap-8">
-						{/* Contact */}
-						<div className="flex items-center gap-6 text-sm text-gray-600">
-							<a
-								href="tel:+918850189216"
-								className="flex items-center gap-2 hover:text-gray-900 transition-colors"
-							>
-								<Phone className="w-4 h-4" />
-								<span>+91 88501 89216</span>
-							</a>
+					{/* RIGHT - Contact Button */}
+					<div className="flex items-center">
 
-							<a
-								href="mailto:visa@stamp2fly.com"
-								className="flex items-center gap-2 hover:text-gray-900 transition-colors"
-							>
-								<Mail className="w-4 h-4" />
-								<span>visa@stamp2fly.com</span>
-							</a>
-						</div>
-
-						{/* Login */}
+						{/* Desktop Button */}
 						<Button
 							asChild
-							className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6"
+							className="hidden md:inline-flex bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-6"
 						>
-							<Link to="/contact">Contact us</Link>
+							<Link to="/contact">Contact Us</Link>
 						</Button>
+
+						{/* Mobile Button */}
+						<button
+							onClick={() => navigate("/contact")}
+							className="md:hidden px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md shadow transition"
+						>
+							Contact Us
+						</button>
+
 					</div>
+
 				</div>
 			</div>
 		</header>
