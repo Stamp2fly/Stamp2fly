@@ -9,7 +9,7 @@ import { useVisa } from '@/contexts/VisaContext';
 function VisaSearch() {
   const navigate = useNavigate();
   const { visaData } = useVisa();
-  
+
   const [nationality, setNationality] = useState({ name: 'India', flag: '🇮🇳' });
   const [destination, setDestination] = useState(null);
 
@@ -18,7 +18,7 @@ function VisaSearch() {
 
   const [isNationalityDropdownOpen, setIsNationalityDropdownOpen] = useState(false);
   const [isDestinationDropdownOpen, setIsDestinationDropdownOpen] = useState(false);
-  
+
   const nationalityDropdownRef = useRef(null);
   const destinationDropdownRef = useRef(null);
 
@@ -76,67 +76,138 @@ function VisaSearch() {
   );
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      <div className="bg-white/70 backdrop-blur-xl border border-gray-200 rounded-full p-2 shadow-lg flex items-center space-x-2">
-        <div className="relative flex-1" ref={nationalityDropdownRef}>
-          <div className="flex items-center w-full" onClick={() => setIsNationalityDropdownOpen(!isNationalityDropdownOpen)}>
-            <MapPin className="h-5 w-5 text-gray-400 mx-4" />
-            <div className="flex-1">
-              <p className="text-xs text-gray-500">I'm from</p>
-              <p className="font-semibold text-gray-800">{nationality.flag} {nationality.name}</p>
-            </div>
-            <ChevronDown className={`h-5 w-5 text-gray-400 mr-2 transition-transform ${isNationalityDropdownOpen ? 'rotate-180' : ''}`} />
-          </div>
-          {isNationalityDropdownOpen && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="absolute top-full mt-2 w-64 bg-white rounded-xl shadow-lg border z-10 overflow-hidden">
-               <div className="p-2">
-                 <input
-                  type="text"
-                  placeholder="Search country..."
-                  value={nationalitySearchTerm}
-                  onChange={(e) => setNationalitySearchTerm(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border-gray-200 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                />
-               </div>
-              <div className="max-h-60 overflow-y-auto">
-                {filteredNationalities.map(c => <CountrySelectItem key={c.name} country={c} onSelect={(country) => { setNationality(country); setIsNationalityDropdownOpen(false); setNationalitySearchTerm(''); }} />)}
-              </div>
-            </motion.div>
-          )}
-        </div>
+    <div className="w-full px-4 sm:px-0">
+      <div className="w-full max-w-4xl mx-auto">
+        <div className="bg-white/80 backdrop-blur-xl border border-gray-200 
+        rounded-2xl sm:rounded-full 
+        p-4 sm:p-2 
+        shadow-lg 
+        flex flex-col sm:flex-row 
+        gap-3 sm:gap-0 sm:items-center sm:space-x-2"
+        >
 
-        <div className="w-px h-10 bg-gray-200"></div>
-
-        <div className="relative flex-1" ref={destinationDropdownRef}>
-          <div className="flex items-center w-full" onClick={() => setIsDestinationDropdownOpen(!isDestinationDropdownOpen)}>
-            <Plane className="h-5 w-5 text-gray-400 mx-4" />
-            <div className="flex-1">
-              <p className="text-xs text-gray-500">I'm going to</p>
-              <p className="font-semibold text-gray-800">{destination ? `${destination.flag} ${destination.name}` : 'Select destination'}</p>
-            </div>
-            <ChevronDown className={`h-5 w-5 text-gray-400 mr-2 transition-transform ${isDestinationDropdownOpen ? 'rotate-180' : ''}`} />
-          </div>
-          {isDestinationDropdownOpen && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="absolute top-full mt-2 w-64 bg-white rounded-xl shadow-lg border z-10 overflow-hidden">
-               <div className="p-2">
-                 <input
-                  type="text"
-                  placeholder="Search destination..."
-                  value={destinationSearchTerm}
-                  onChange={(e) => setDestinationSearchTerm(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border-gray-200 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                />
-               </div>
-              <div className="max-h-60 overflow-y-auto">
-                {filteredDestinations.map(d => <CountrySelectItem key={d.name} country={d} onSelect={(country) => { setDestination(country); setIsDestinationDropdownOpen(false); setDestinationSearchTerm(''); }} />)}
+          {/* Nationality */}
+          <div className="relative flex-1 w-full" ref={nationalityDropdownRef}>
+            <button
+              onClick={() => setIsNationalityDropdownOpen(!isNationalityDropdownOpen)}
+              className="flex items-center w-full px-4 py-3 sm:py-2 rounded-xl sm:rounded-full hover:bg-gray-50 transition"
+            >
+              <MapPin className="h-5 w-5 text-gray-400 mr-3" />
+              <div className="flex-1 text-left">
+                <p className="text-xs text-gray-500">I'm from</p>
+                <p className="font-semibold text-sm text-gray-800 truncate">
+                  {nationality.flag} {nationality.name}
+                </p>
               </div>
-            </motion.div>
-          )}
+              <ChevronDown
+                className={`h-5 w-5 text-gray-400 transition-transform ${isNationalityDropdownOpen ? "rotate-180" : ""
+                  }`}
+              />
+            </button>
+
+            {isNationalityDropdownOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute top-full mt-2 w-full 
+                bg-white rounded-xl shadow-lg border z-50 overflow-hidden"
+              >
+                <div className="p-3">
+                  <input
+                    type="text"
+                    placeholder="Search country..."
+                    value={nationalitySearchTerm}
+                    onChange={(e) => setNationalitySearchTerm(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div className="max-h-60 overflow-y-auto">
+                  {filteredNationalities.map((c) => (
+                    <CountrySelectItem
+                      key={c.name}
+                      country={c}
+                      onSelect={(country) => {
+                        setNationality(country);
+                        setIsNationalityDropdownOpen(false);
+                        setNationalitySearchTerm("");
+                      }}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          {/* Divider Desktop Only */}
+          <div className="hidden sm:block w-px h-10 bg-gray-200" />
+
+          {/* Destination */}
+          <div className="relative flex-1 w-full" ref={destinationDropdownRef}>
+            <button
+              onClick={() => setIsDestinationDropdownOpen(!isDestinationDropdownOpen)}
+              className="flex items-center w-full px-4 py-3 sm:py-2 rounded-xl sm:rounded-full hover:bg-gray-50 transition"
+            >
+              <Plane className="h-5 w-5 text-gray-400 mr-3" />
+              <div className="flex-1 text-left">
+                <p className="text-xs text-gray-500">I'm going to</p>
+                <p className="font-semibold text-sm text-gray-800 truncate">
+                  {destination
+                    ? `${destination.flag} ${destination.name}`
+                    : "Select destination"}
+                </p>
+              </div>
+              <ChevronDown
+                className={`h-5 w-5 text-gray-400 transition-transform ${isDestinationDropdownOpen ? "rotate-180" : ""
+                  }`}
+              />
+            </button>
+
+            {isDestinationDropdownOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute top-full mt-2 w-full 
+                bg-white rounded-xl shadow-lg border z-50 overflow-hidden"
+              >
+                <div className="p-3">
+                  <input
+                    type="text"
+                    placeholder="Search destination..."
+                    value={destinationSearchTerm}
+                    onChange={(e) => setDestinationSearchTerm(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div className="max-h-60 overflow-y-auto">
+                  {filteredDestinations.map((d) => (
+                    <CountrySelectItem
+                      key={d.name}
+                      country={d}
+                      onSelect={(country) => {
+                        setDestination(country);
+                        setIsDestinationDropdownOpen(false);
+                        setDestinationSearchTerm("");
+                      }}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          {/* Search Button */}
+          <Button
+            onClick={handleSearch}
+            className="w-full sm:w-14 h-12 sm:h-14 
+          rounded-xl sm:rounded-full 
+          bg-blue-600 hover:bg-blue-700 
+          text-white flex items-center justify-center"
+          >
+            <Search className="h-5 w-5 sm:h-6 sm:w-6" />
+          </Button>
         </div>
-        
-        <Button onClick={handleSearch} className="rounded-full bg-blue-600 hover:bg-blue-700 text-white w-14 h-14 flex-shrink-0">
-          <Search className="h-6 w-6" />
-        </Button>
       </div>
     </div>
   );

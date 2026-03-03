@@ -10,24 +10,24 @@ function Header() {
 	const isHomePage = location.pathname === "/";
 	return (
 		<header className="bg-white/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-200">
-			<div className="max-w-1xl mx-auto px-4 sm:px-4 lg:px-8">
+			<div className="max-w-1xl mx-auto px-3 sm:px-4 lg:px-8">
 				{/* Main Header Row */}
-				<div className="flex items-center justify-between h-20">
+				<div className="flex items-center justify-between h-16 sm:h-20">
 					{/* LEFT - Logo */}
 					<div className="flex items-center">
-						<Link to="/" className="flex items-center space-x-2">
+						<Link to="/" className="flex items-center space-x-1 sm:space-x-2">
 							<motion.div
 								initial={{ opacity: 0, x: -20 }}
 								animate={{ opacity: 1, x: 0 }}
 								transition={{ duration: 0.5 }}
-								className="flex items-center space-x-2"
+								className="flex items-center space-x-1 sm:space-x-2"
 							>
 								<img
 									src="https://storage.googleapis.com/hostinger-horizons-assets-prod/ac7c5e33-833b-415b-87a1-38b5119ebfe9/1e7b9ac90d11a07facf22532137e65d6.png"
 									alt="Stamp2Fly Brandmark"
-									className="h-8 w-auto"
+									className="h-6 sm:h-8 w-auto"
 								/>
-								<span className="text-xl font-bold text-gray-800">
+								<span className="text-sm sm:text-xl font-bold text-gray-800">
 									Stamp2Fly
 								</span>
 							</motion.div>

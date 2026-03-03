@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
 import { Users, Target, BookOpen } from "lucide-react";
+import BackToHomeButton from "../components/BackHomePage";
 
 const AboutUsPage = () => {
 	return (
@@ -169,6 +170,7 @@ const AboutUsPage = () => {
 						</div>
 					</div>
 				</section>
+				<BackToHomeButton />
 			</main>
 
 			<Footer />

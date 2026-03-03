@@ -16,6 +16,7 @@ import { useVisa } from "@/contexts/VisaContext";
 import { cn } from "@/lib/utils";
 import BackButton from "../components/Admin/BackButton";
 import WhatsAppButton from "../components/WhatsAppButton";
+import BackToHomeButton from "../components/BackHomePage";
 
 function PricingPage() {
 	const location = useLocation();
@@ -80,15 +81,15 @@ function PricingPage() {
 			<Header />
 			<BackButton />
 			<main className="bg-slate-50">
-				<section className="py-16 md:py-24">
+				<section className="py-12 sm:py-16 md:py-24">
 					<div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.5 }}
-							className="text-center mb-12"
+							className="text-center mb-8 sm:mb-12"
 						>
-							<h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+							<h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
 								{countryData.flag} {searchData.destination} Visa Options
 							</h1>
 							<p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -97,7 +98,8 @@ function PricingPage() {
 							</p>
 						</motion.div>
 
-						<div className="space-y-6">
+						{/* options list; allow horizontal scroll on tiny devices */}
+						<div className="space-y-4 sm:space-y-6 overflow-x-auto">
 							{countryData.options.map((option) => (
 								<motion.div
 									key={option.id}
@@ -133,7 +135,7 @@ function PricingPage() {
 									</div>
 
 									<div className="p-6">
-										<div className="grid grid-cols-2 md:grid-cols-6 gap-6 items-center">
+										<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-6 items-center">
 											<div className="text-center">
 												<p className="text-sm text-gray-500">Entry</p>
 												<p className="font-semibold text-gray-800">
@@ -158,7 +160,7 @@ function PricingPage() {
 													{option.processingTime}
 												</p>
 											</div>
-											<div className="text-center md:col-span-2 flex items-center justify-center gap-4">
+											<div className="text-center md:col-span-2 sm:col-span-2 flex flex-col sm:flex-row items-center justify-center gap-4">
 												<div className="text-right">
 													{option.originalPrice && (
 														<p className="text-sm text-gray-500 line-through">
@@ -185,7 +187,7 @@ function PricingPage() {
 															: "outline"
 													}
 													size="lg"
-													className="bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+													className="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
 												>
 													{option.id === selectedOptionId
 														? "Selected"
@@ -208,7 +210,7 @@ function PricingPage() {
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ delay: 0.4, duration: 0.5 }}
-							className="mt-12 bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-md border"
+							className="mt-8 sm:mt-12 bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-md border"
 						>
 							<h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
 								What's Included in Our Service
@@ -228,22 +230,23 @@ function PricingPage() {
 									</div>
 								))}
 							</div>
-							
 						</motion.div>
-            <div className="mt-10 text-center">
-								<Button
-									size="lg"
-									onClick={handleApplyNow}
-									disabled={!selectedOption}
-									className="bg-blue-600 hover:bg-blue-700 text-white px-10"
-								>
-									Continue to Document Upload
-									<ArrowRight className="w-4 h-4 ml-2" />
-								</Button>
-							</div>
+
+						<div className="mt-10 text-center">
+							<Button
+								size="lg"
+								onClick={handleApplyNow}
+								disabled={!selectedOption}
+								className="w-full max-w-xs mx-auto bg-blue-600 hover:bg-blue-700 text-white"
+							>
+								Continue to Document Upload
+								<ArrowRight className="w-4 h-4 ml-2" />
+							</Button>
+						</div>
 					</div>
 				</section>
-				<WhatsAppButton	/>
+				{/* <WhatsAppButton /> */}
+				<BackToHomeButton/>
 			</main>
 			<Footer />
 		</>

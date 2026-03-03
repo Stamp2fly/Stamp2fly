@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, HelpCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import BackToHomeButton from "../components/BackHomePage";
 
 const faqData = {
 	General: [
@@ -155,6 +156,7 @@ const FaqPage = () => {
 						</div>
 					</div>
 				</section>
+				<BackToHomeButton/>
 			</main>
 			<Footer />
 		</>

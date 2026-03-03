@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/use-toast";
 import WhatsAppButton from "../components/WhatsAppButton";
 import MapEmbed from "../components/MapEmbed";
 import BackButton from "../components/Admin/BackButton";
+import BackToHomeButton from "../components/BackHomePage";
 
 const ContactPage = () => {
 	// To integrate a toast notification system that provides users with immediate feedback when they submit the contact form, enhancing user experience and engagement.
@@ -186,7 +187,7 @@ const ContactPage = () => {
 						</div>
 					</div>
 				</section>
-				<WhatsAppButton />
+				<BackToHomeButton />
 			</main>
 			<Footer />
 		</>
