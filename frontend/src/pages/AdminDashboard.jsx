@@ -127,7 +127,7 @@ const Sidebar = ({ onLogout }) => {
       className="w-64 bg-slate-800 text-white flex-col fixed h-full z-40 hidden lg:flex"
     >
       <div className="flex items-center justify-center h-20 border-b border-slate-700/50">
-         <div className="inline-block w-8 h-8 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-lg flex items-center justify-center mr-2">
+         <div className="inline-block w-8 h-8 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-lg items-center justify-center mr-2">
             <span className="text-white font-bold text-xl">S</span>
         </div>
         <span className="text-xl font-bold text-white tracking-tighter">Stamp2Fly</span>
