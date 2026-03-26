@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Home, PlusCircle, Trash2, CheckCircle } from 'lucide-react';
@@ -20,6 +20,8 @@ const SECTIONS = [
 
 const createTraveler = (id) => ({
   id,
+  fullName: '',
+  dateOfBirth: '',
   passportFrontFile: null,
   passportBackFile: null,
   photoFile: null,
@@ -80,7 +82,7 @@ function ApplicationPage() {
   const navigate = useNavigate();
   const { startApplication, updateCurrentApplication, currentApplication } = useApplication();
 
-  const applicationState = location.state || {};
+  const applicationState = useMemo(() => location.state || {}, [location.state]);
   const destination = applicationState.destination || 'Visa';
   const hasPricingInfo = !!applicationState.visaDetails;
 
@@ -88,8 +90,12 @@ function ApplicationPage() {
   const [travelDates, setTravelDates] = useState({ from: '', to: '' });
   const [travelers, setTravelers] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState({});
+  const didInitialize = useRef(false);
 
   useEffect(() => {
+    if (didInitialize.current) return;
+    didInitialize.current = true;
+
     if (currentApplication?.travelers?.length) {
       setTravelers(currentApplication.travelers);
       setTravelDates({
@@ -108,7 +114,7 @@ function ApplicationPage() {
       travelers: initialTravelers,
       travelDates: { from: '', to: '' },
     });
-  }, []);
+  }, [applicationState, currentApplication, startApplication]);
 
   const documentLists = useMemo(
     () =>
@@ -124,6 +130,8 @@ function ApplicationPage() {
     if (travelDates.from && travelDates.to) completed += 1;
 
     travelers.forEach((traveler) => {
+      if (traveler.fullName) completed += 1;
+      if (traveler.dateOfBirth) completed += 1;
       if (traveler.passportFrontFile) completed += 1;
       if (traveler.passportBackFile) completed += 1;
       if (traveler.photoFile) completed += 1;
@@ -144,7 +152,7 @@ function ApplicationPage() {
   }, [travelDates, travelers, documentLists, uploadedFiles]);
 
   const totalRequired = useMemo(() => {
-    const travelerFields = 1 + travelers.length * 8;
+    const travelerFields = 1 + travelers.length * 10;
     const docs = documentLists.reduce((sum, list) => sum + list.documents.length, 0);
     return travelerFields + docs;
   }, [travelers, documentLists]);
@@ -186,7 +194,7 @@ function ApplicationPage() {
         toast({ title: `Upload all passport/photo files for Traveler ${index + 1}.`, variant: 'destructive' });
         return false;
       }
-      if (!traveler.email || !traveler.phone || !traveler.maritalStatus || !traveler.occupation) {
+      if (!traveler.fullName || !traveler.dateOfBirth || !traveler.email || !traveler.phone || !traveler.maritalStatus || !traveler.occupation) {
         toast({ title: `Complete all details for Traveler ${index + 1}.`, variant: 'destructive' });
         return false;
       }
@@ -352,6 +360,14 @@ function ApplicationPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
+                            <Label>Full Name</Label>
+                            <Input value={traveler.fullName} onChange={(event) => updateTraveler(traveler.id, 'fullName', event.target.value)} />
+                          </div>
+                          <div>
+                            <Label>Date of Birth</Label>
+                            <Input type="date" value={traveler.dateOfBirth} onChange={(event) => updateTraveler(traveler.id, 'dateOfBirth', event.target.value)} />
+                          </div>
+                          <div>
                             <Label>Email</Label>
                             <Input type="email" value={traveler.email} onChange={(event) => updateTraveler(traveler.id, 'email', event.target.value)} />
                           </div>
@@ -363,7 +379,7 @@ function ApplicationPage() {
                             <Label>Marital Status</Label>
                             <Select value={traveler.maritalStatus} onValueChange={(value) => updateTraveler(traveler.id, 'maritalStatus', value)}>
                               <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
-                              <SelectContent>
+                              <SelectContent className="bg-white opacity-100">
                                 <SelectItem value="single">Single</SelectItem>
                                 <SelectItem value="married">Married</SelectItem>
                                 <SelectItem value="divorced">Divorced</SelectItem>
@@ -375,7 +391,7 @@ function ApplicationPage() {
                             <Label>Occupation</Label>
                             <Select value={traveler.occupation} onValueChange={(value) => updateTraveler(traveler.id, 'occupation', value)}>
                               <SelectTrigger><SelectValue placeholder="Select occupation" /></SelectTrigger>
-                              <SelectContent>
+                              <SelectContent className="bg-white opacity-100">
                                 <SelectItem value="employed">Employed</SelectItem>
                                 <SelectItem value="self-employed">Self-Employed</SelectItem>
                                 <SelectItem value="freelancer">Freelancer</SelectItem>
@@ -389,7 +405,7 @@ function ApplicationPage() {
                             <Label>Sponsorship</Label>
                             <Select value={traveler.sponsorship} onValueChange={(value) => updateTraveler(traveler.id, 'sponsorship', value)}>
                               <SelectTrigger><SelectValue /></SelectTrigger>
-                              <SelectContent>
+                              <SelectContent className="bg-white opacity-100">
                                 <SelectItem value="self">Self-Sponsored</SelectItem>
                                 <SelectItem value="sponsored">Sponsored by someone</SelectItem>
                               </SelectContent>
@@ -455,6 +471,8 @@ function ApplicationPage() {
                       return (
                         <div key={traveler.id} className="rounded-xl border border-gray-200 p-4 bg-gray-50 space-y-3">
                           <p className="font-semibold text-gray-900">Traveler {index + 1}</p>
+                          <p className="text-sm text-gray-700"><span className="font-medium text-gray-900">Full Name:</span> {traveler.fullName || '-'}</p>
+                          <p className="text-sm text-gray-700"><span className="font-medium text-gray-900">Date of Birth:</span> {traveler.dateOfBirth || '-'}</p>
                           <p className="text-sm text-gray-700"><span className="font-medium text-gray-900">Email:</span> {traveler.email || '-'}</p>
                           <p className="text-sm text-gray-700"><span className="font-medium text-gray-900">Phone:</span> {traveler.phone || '-'}</p>
                           <p className="text-sm text-gray-700"><span className="font-medium text-gray-900">Marital Status:</span> {formatText(traveler.maritalStatus)}</p>
