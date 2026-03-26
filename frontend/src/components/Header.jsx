@@ -43,9 +43,6 @@ function Header(props) {
 							<a href="#checklist" className="text-gray-700 hover:text-blue-600 transition">
 								Visa Checklist
 							</a>
-							<a href="#how-it-works" className="text-gray-700 hover:text-blue-600 transition">
-								How It Works
-							</a>
 						</div>
 					)}
 

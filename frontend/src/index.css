@@ -23,3 +23,38 @@ body {
 .gradient-bg {
   background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
 }
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.panorama-shell {
+  overflow: hidden;
+  width: 100%;
+}
+
+.panorama-track {
+  display: flex;
+  gap: 1rem;
+  width: max-content;
+  animation: panorama-scroll 36s linear infinite;
+  will-change: transform;
+}
+
+.panorama-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes panorama-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}

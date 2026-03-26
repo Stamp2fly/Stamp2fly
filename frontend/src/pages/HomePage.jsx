@@ -1,14 +1,138 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Header from "@/components/Header";
 import VisaSearch from "@/components/VisaSearch";
 import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
+import {
+	ArrowRight,
+	CheckCircle,
+	ChevronRight,
+	Clock,
+	ExternalLink,
+	FileText,
+	HelpCircle,
+} from "lucide-react";
+import { useVisa } from "@/contexts/VisaContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import WhatsAppButton from "../components/WhatsAppButton";
+
+const toSlug = (value) => value.toLowerCase().replace(/\s+/g, "-");
+const COUNTRY_SCENIC_QUERIES = {
+	"United Arab Emirates": "Burj Khalifa Dubai skyline",
+	Australia: "Sydney Opera House harbor",
+	Singapore: "Marina Bay Sands skyline",
+	"United States": "Statue of Liberty New York skyline",
+	"United Kingdom": "Big Ben London",
+	Canada: "CN Tower Toronto skyline",
+	India: "Gateway of India Mumbai",
+	Taiwan: "Taipei 101 skyline",
+};
+
+const countryImageUrl = (country) =>
+	`https://source.unsplash.com/900x600/?${encodeURIComponent(COUNTRY_SCENIC_QUERIES[country] || `${country} famous landmark travel`)}`;
+const scenicFallbackImage =
+	"https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80";
 
 function HomePage() {
 	const navigate = useNavigate();
+	const { search } = useLocation();
+	const { visaData } = useVisa();
+
+	const [checklistSearchTerm, setChecklistSearchTerm] = useState("");
+	const [selectedDestination, setSelectedDestination] = useState("");
+	const [hasSearchedChecklist, setHasSearchedChecklist] = useState(false);
+	const [modalDestination, setModalDestination] = useState("");
+	const [isModalOpen, setIsModalOpen] = useState(false);
+
+	const destinations = useMemo(() => Object.keys(visaData), [visaData]);
+
+	const filteredDestinations = useMemo(() => {
+		const query = checklistSearchTerm.trim().toLowerCase();
+		if (!query) {
+			return destinations;
+		}
+
+		return destinations.filter((country) => country.toLowerCase().includes(query));
+	}, [destinations, checklistSearchTerm]);
+
+	const selectedCountryData = selectedDestination ? visaData[selectedDestination] : null;
+
+	const recentCountries = useMemo(() => {
+		const adminSelected = destinations.filter((country) => visaData[country]?.isRecent);
+		if (adminSelected.length > 0) {
+			return adminSelected;
+		}
+
+		return destinations.slice(0, 8);
+	}, [destinations, visaData]);
+
+	const panoramaCountries = useMemo(() => {
+		if (recentCountries.length === 0) {
+			return [];
+		}
+
+		return [...recentCountries, ...recentCountries];
+	}, [recentCountries]);
+
+	const modalCountryData = modalDestination ? visaData[modalDestination] : null;
+
+	useEffect(() => {
+		const params = new URLSearchParams(search);
+		const destinationFromUrl = params.get("destination");
+
+		if (!destinationFromUrl) {
+			return;
+		}
+
+		const matchedDestination = destinations.find(
+			(country) => toSlug(country) === destinationFromUrl || country === destinationFromUrl,
+		);
+
+		if (matchedDestination) {
+			setSelectedDestination(matchedDestination);
+			setChecklistSearchTerm(matchedDestination);
+			setHasSearchedChecklist(true);
+			const section = document.getElementById("checklist");
+			if (section) {
+				setTimeout(() => {
+					section.scrollIntoView({ behavior: "smooth", block: "start" });
+				}, 80);
+			}
+		}
+	}, [search, destinations]);
+
+	const handleApply = (destinationName) => {
+		navigate("/pricing", {
+			state: { destination: destinationName, nationality: "India" },
+		});
+	};
+
+	const openCountryModal = (country) => {
+		setModalDestination(country);
+		setIsModalOpen(true);
+	};
+
+	const moveToChecklist = (country) => {
+		setSelectedDestination(country);
+		setChecklistSearchTerm(country);
+		setHasSearchedChecklist(true);
+		setIsModalOpen(false);
+
+		const checklistSection = document.getElementById("checklist");
+		if (checklistSection) {
+			checklistSection.scrollIntoView({ behavior: "smooth", block: "start" });
+		}
+	};
 
 	// Structured data for SEO
 	const organizationSchema = {
@@ -108,148 +232,243 @@ function HomePage() {
 					</div>
 				</section>
 
-				{/* ================= CHECKLIST SECTION ================= */}
 				<section id="checklist" className="py-12 sm:py-20 md:py-28 bg-blue-50">
-					<div className="max-w-6xl mx-auto px-4 text-center">
-						<h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">
-							Visa Checklist
-						</h2>
-
-						<p className="mt-3 sm:mt-4 md:mt-6 text-xs sm:text-sm md:text-base lg:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-							Before you travel, make sure you have everything you need. Check
-							documents, entry rules, and travel requirements instantly.
-						</p>
-
-						{/* Cards */}
-						<div className="mt-8 sm:mt-12 md:mt-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
-							{/* Card 1 */}
-							<div className="bg-white p-6 sm:p-8 rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl transition duration-300">
-								<div className="w-12 sm:w-14 h-12 sm:h-14 flex items-center justify-center rounded-full bg-green-100 mb-4 sm:mb-6 mx-auto">
-									📄
-								</div>
-								<h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
-									Required Documents
-								</h3>
-								<p className="mt-2 sm:mt-3 text-gray-600 text-xs sm:text-sm leading-relaxed">
-									Know exactly which documents are required for your
-									destination.
-								</p>
-							</div>
-
-							{/* Card 2 */}
-							<div className="bg-white p-6 sm:p-8 rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl transition duration-300">
-								<div className="w-12 sm:w-14 h-12 sm:h-14 flex items-center justify-center rounded-full bg-blue-100 mb-4 sm:mb-6 mx-auto">
-									🌍
-								</div>
-								<h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
-									Entry Regulations
-								</h3>
-								<p className="mt-2 sm:mt-3 text-gray-600 text-xs sm:text-sm leading-relaxed">
-									Understand visa types, validity, and stay duration.
-								</p>
-							</div>
-
-							{/* Card 3 */}
-							<div className="bg-white p-6 sm:p-8 rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl transition duration-300">
-								<div className="w-12 sm:w-14 h-12 sm:h-14 flex items-center justify-center rounded-full bg-pink-100 mb-4 sm:mb-6 mx-auto">
-									🛡️
-								</div>
-								<h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
-									Travel Updates
-								</h3>
-								<p className="mt-2 sm:mt-3 text-gray-600 text-xs sm:text-sm leading-relaxed">
-									Stay informed about the latest entry and travel policies.
-								</p>
-							</div>
-						</div>
-					</div>
-				</section>
-
-				{/* ================= HOW IT WORKS SECTION ================= */}
-				<section
-					id="how-it-works"
-					className="relative overflow-hidden py-12 sm:py-20 md:py-28 bg-gradient-to-b from-blue-50/70 via-white to-white"
-				>
-					<div className="pointer-events-none absolute -top-20 -left-20 h-72 w-72 rounded-full bg-blue-100/60 blur-3xl"></div>
-					<div className="pointer-events-none absolute -bottom-24 -right-24 h-80 w-80 rounded-full bg-cyan-100/50 blur-3xl"></div>
-
-					<div className="relative max-w-6xl mx-auto px-4">
+					<div className="max-w-6xl mx-auto px-4">
 						<div className="text-center">
-							<span className="inline-flex items-center rounded-full bg-blue-100 px-3 sm:px-4 py-1 text-xs font-semibold tracking-[0.14em] text-blue-700 uppercase">
-								Quick Process
-							</span>
-							<h2 className="mt-4 sm:mt-5 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight">
-								How It Works
+							<h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">
+								Visa Checklist
 							</h2>
 							<p className="mt-3 sm:mt-4 md:mt-6 text-xs sm:text-sm md:text-base lg:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-								Getting your visa is simple. Follow these three steps to
-								complete your application with confidence.
+								Search your destination and instantly view a quick summary with the required checklist.
 							</p>
 						</div>
 
-						<div className="relative mt-8 sm:mt-12 md:mt-16 grid gap-4 sm:gap-5 md:gap-6 grid-cols-1 md:grid-cols-3">
-							<div className="hidden md:block absolute left-0 right-0 top-12 h-px bg-gradient-to-r from-transparent via-blue-200 to-transparent"></div>
-
-							{/* Step 1 */}
-							<div className="group relative rounded-2xl sm:rounded-3xl border border-blue-100 bg-white/90 p-5 sm:p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-								<div className="flex items-center gap-3 sm:gap-4">
-									<div className="w-10 sm:w-12 h-10 sm:h-12 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm sm:text-base shadow-lg shadow-blue-200">
-										1
-									</div>
-									<span className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">
-										Step 01
-									</span>
+						<div className="mt-8 bg-white rounded-2xl shadow-md border border-gray-100 p-6 md:p-8">
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:items-end">
+								<div className="md:col-span-2">
+									<p className="text-xs text-gray-500 mb-2">Search destination</p>
+									<Input
+										type="text"
+										value={checklistSearchTerm}
+										onChange={(e) => setChecklistSearchTerm(e.target.value)}
+										placeholder="Type destination (e.g., Singapore, UAE, Canada)"
+									/>
 								</div>
-								<h3 className="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl font-semibold text-gray-900">
-									Choose Your Destination
-								</h3>
-								<p className="mt-2 sm:mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
-									Select your passport and destination to instantly view visa
-									requirements.
-								</p>
+								<div>
+									<Button
+										onClick={() => {
+											if (filteredDestinations.length > 0) {
+												setSelectedDestination(filteredDestinations[0]);
+												setChecklistSearchTerm(filteredDestinations[0]);
+												setHasSearchedChecklist(true);
+											}
+										}}
+										className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+									>
+										Show Checklist
+									</Button>
+								</div>
 							</div>
 
-							{/* Step 2 */}
-							<div className="group relative rounded-2xl sm:rounded-3xl border border-blue-100 bg-white/90 p-5 sm:p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-								<div className="flex items-center gap-3 sm:gap-4">
-									<div className="w-10 sm:w-12 h-10 sm:h-12 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm sm:text-base shadow-lg shadow-blue-200">
-										2
-									</div>
-									<span className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">
-										Step 02
-									</span>
+							{checklistSearchTerm.trim() && (
+								<div className="mt-4 flex flex-wrap gap-2">
+									{filteredDestinations.slice(0, 8).map((country) => (
+										<button
+											key={country}
+											onClick={() => {
+												setSelectedDestination(country);
+												setChecklistSearchTerm(country);
+												setHasSearchedChecklist(true);
+											}}
+											className="px-3 py-1.5 rounded-full border border-blue-200 text-blue-700 text-sm hover:bg-blue-50 transition"
+										>
+											{visaData[country]?.flag} {country}
+										</button>
+									))}
 								</div>
-								<h3 className="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl font-semibold text-gray-900">
-									Submit Your Application
-								</h3>
-								<p className="mt-2 sm:mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
-									Complete the form and upload required documents through our
-									guided process.
+							)}
+
+							{checklistSearchTerm.trim() && filteredDestinations.length === 0 && (
+								<p className="mt-4 text-sm text-red-600">No destination found. Try a different spelling.</p>
+							)}
+						</div>
+
+						{hasSearchedChecklist && selectedCountryData && (
+							<div className="mt-8 bg-white rounded-2xl shadow-md border border-gray-100 p-6 md:p-8">
+								<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-100 pb-5 mb-5">
+									<div>
+										<h3 className="text-xl md:text-2xl font-bold text-gray-900">
+											{selectedCountryData.flag} {selectedDestination}
+										</h3>
+										<p className="text-sm text-gray-600 mt-1">
+											{selectedCountryData.options?.[0]?.name || "Tourist Visa"} for Indian applicants
+										</p>
+									</div>
+									<div className="flex items-center text-sm text-gray-700 bg-blue-50 px-4 py-2 rounded-lg">
+										<Clock className="h-4 w-4 mr-2 text-blue-600" />
+										{selectedCountryData.options?.[0]?.processingTime || "Varies"}
+									</div>
+								</div>
+
+								<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+									<div className="lg:col-span-2">
+										<h4 className="font-semibold text-gray-900 flex items-center mb-4">
+											<FileText className="h-5 w-5 mr-2 text-blue-600" />
+											Checklist
+										</h4>
+										<ul className="space-y-3">
+											{(selectedCountryData.checklist?.base || []).map((item) => (
+												<li key={item.key} className="flex items-start">
+													<CheckCircle className="h-5 w-5 mr-2 mt-0.5 text-green-600" />
+													<div>
+														<p className="text-sm font-medium text-gray-800">{item.name}</p>
+														<p className="text-xs text-gray-600">{item.description}</p>
+													</div>
+												</li>
+											))}
+										</ul>
+									</div>
+
+									<div className="space-y-4">
+										<div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+											<h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+												<HelpCircle className="h-4 w-4 mr-2 text-blue-600" />
+												Quick Summary
+											</h4>
+											<p className="text-sm text-gray-700">
+												Entry: {selectedCountryData.options?.[0]?.entry || "Varies"}
+											</p>
+											<p className="text-sm text-gray-700 mt-1">
+												Validity: {selectedCountryData.options?.[0]?.validity || "Varies"}
+											</p>
+											<p className="text-sm text-gray-700 mt-1">
+												Duration: {selectedCountryData.options?.[0]?.duration || selectedCountryData.options?.[0]?.stay || "Varies"}
+											</p>
+										</div>
+
+										{selectedCountryData.source && (
+											<a
+												href={selectedCountryData.source}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="inline-flex items-center text-sm text-blue-700 hover:text-blue-800 font-medium"
+											>
+												Official Source
+												<ExternalLink className="h-4 w-4 ml-1" />
+											</a>
+										)}
+
+										<Button
+											onClick={() => handleApply(selectedDestination)}
+											className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+										>
+											Apply for {selectedDestination}
+											<ArrowRight className="h-4 w-4 ml-2" />
+										</Button>
+									</div>
+								</div>
+							</div>
+						)}
+					</div>
+				</section>
+
+				<section id="recent-countries" className="py-12 sm:py-20 bg-white">
+					<div className="max-w-6xl mx-auto px-4">
+						<div className="flex items-end justify-between mb-6">
+							<div>
+								<h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
+									Recent Countries
+								</h2>
+								<p className="mt-2 text-sm text-gray-600">
+									Click a country to view a quick requirements popup.
 								</p>
 							</div>
+						</div>
 
-							{/* Step 3 */}
-							<div className="group relative rounded-2xl sm:rounded-3xl border border-blue-100 bg-white/90 p-5 sm:p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-								<div className="flex items-center gap-3 sm:gap-4">
-									<div className="w-10 sm:w-12 h-10 sm:h-12 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-sm sm:text-base shadow-lg shadow-blue-200">
-										3
+						<div className="panorama-shell no-scrollbar pb-3">
+							<div className="panorama-track">
+								{panoramaCountries.map((country, index) => (
+								<button
+									key={`${country}-${index}`}
+									onClick={() => openCountryModal(country)}
+									className="panorama-card min-w-[280px] sm:min-w-[320px] md:min-w-[360px] text-left bg-gradient-to-br from-white to-blue-50 border border-blue-100 rounded-2xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition"
+								>
+									<div className="relative w-full h-44 rounded-xl overflow-hidden bg-slate-100 border border-blue-100">
+										<img
+											src={countryImageUrl(country)}
+											alt={`${country} travel view`}
+											className="w-full h-full object-cover"
+											onError={(event) => {
+												event.currentTarget.onerror = null;
+												event.currentTarget.src = scenicFallbackImage;
+											}}
+										/>
+										<div className="absolute inset-0 bg-gradient-to-t from-slate-900/55 via-slate-900/10 to-transparent" />
+										<div className="absolute bottom-3 left-3 text-white text-xs font-medium tracking-wide bg-white/15 backdrop-blur px-2 py-1 rounded-md">
+											Explore {country}
+										</div>
 									</div>
-									<span className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">
-										Step 03
-									</span>
-								</div>
-								<h3 className="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl font-semibold text-gray-900">
-									Receive Your eVisa
-								</h3>
-								<p className="mt-2 sm:mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed">
-									After approval, your eVisa is delivered directly to your inbox.
-								</p>
+									<h3 className="mt-3 text-lg font-semibold text-gray-900">{country}</h3>
+									<p className="mt-1 text-sm text-gray-600">
+										{visaData[country]?.options?.[0]?.name || "Tourist Visa"}
+									</p>
+									<div className="mt-4 inline-flex items-center text-sm font-medium text-blue-700">
+										View details
+										<ChevronRight className="h-4 w-4 ml-1" />
+									</div>
+								</button>
+								))}
 							</div>
 						</div>
 					</div>
 				</section>
 				<WhatsAppButton />
 			</main>
+
+			<Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+				<DialogContent className="max-w-xl bg-white text-slate-900 border-slate-200 shadow-2xl">
+					<DialogHeader>
+						<DialogTitle>
+							{modalCountryData?.flag} {modalDestination} Visa Requirements
+						</DialogTitle>
+						<DialogDescription className="text-slate-700">
+							Quick summary with key checklist for Indian applicants.
+						</DialogDescription>
+					</DialogHeader>
+
+					{modalCountryData && (
+						<div className="space-y-4">
+							<div className="bg-slate-100 border border-slate-200 rounded-lg p-4 text-sm text-slate-800">
+								<p>Visa Type: {modalCountryData.options?.[0]?.name || "Tourist Visa"}</p>
+								<p className="mt-1">Processing: {modalCountryData.options?.[0]?.processingTime || "Varies"}</p>
+								<p className="mt-1">Validity: {modalCountryData.options?.[0]?.validity || "Varies"}</p>
+							</div>
+
+							<div className="bg-white border border-slate-200 rounded-lg p-4">
+								<h4 className="font-semibold text-gray-900 mb-3">Checklist</h4>
+								<ul className="space-y-2 max-h-56 overflow-y-auto pr-1">
+									{(modalCountryData.checklist?.base || []).map((item) => (
+										<li key={item.key} className="flex items-start text-sm text-gray-700">
+											<CheckCircle className="h-4 w-4 mt-0.5 mr-2 text-green-600" />
+											<div>
+												<p className="font-medium">{item.name}</p>
+												<p className="text-xs text-gray-600">{item.description}</p>
+											</div>
+										</li>
+									))}
+								</ul>
+							</div>
+
+							<Button
+								onClick={() => moveToChecklist(modalDestination)}
+								className="w-full bg-blue-600 hover:bg-blue-700"
+							>
+								Use in Checklist Section
+							</Button>
+						</div>
+					)}
+				</DialogContent>
+			</Dialog>
 
 			<Footer />
 		</>

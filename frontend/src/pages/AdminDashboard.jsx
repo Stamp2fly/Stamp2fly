@@ -8,18 +8,12 @@ import {
 import DashboardView from '@/components/Admin/DashboardView';
 import ApplicationsView from '@/components/Admin/ApplicationsView';
 import VisaManagementView from '@/components/Admin/VisaManagementView';
-import AutomatedFormsView from '@/components/Admin/AutomatedFormsView';
 import CoveringLetterView from '@/components/Admin/CoveringLetterView';
 import ChecklistManagerView from '@/components/Admin/ChecklistManagerView';
 import FaqManagerView from '@/components/Admin/FaqManagerView';
 import UserManagementView from '@/components/Admin/UserManagementView';
-import SupportPanelView from '@/components/Admin/SupportPanelView';
 import RolesPermissionsView from '@/components/Admin/RolesPermissionsView';
-import DataMigrationView from '@/components/Admin/DataMigrationView';
-import SeoManagerView from '@/components/Admin/SeoManagerView';
-import VisitorManagementView from '@/components/Admin/VisitorManagementView';
 import ContentManagerView from '@/components/Admin/ContentManagerView';
-import SiteSettingsView from '@/components/Admin/SiteSettingsView';
 
 const AdminDashboard = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -44,18 +38,12 @@ const AdminDashboard = ({ onLogout }) => {
               <Route path="/" element={<DashboardView />} />
               <Route path="/applications" element={<ApplicationsView />} />
               <Route path="/visa-management" element={<VisaManagementView />} />
-              <Route path="/automated-forms" element={<AutomatedFormsView />} />
               <Route path="/covering-letters" element={<CoveringLetterView />} />
               <Route path="/checklists" element={<ChecklistManagerView />} />
               <Route path="/faqs" element={<FaqManagerView />} />
               <Route path="/content-management" element={<ContentManagerView />} />
-              <Route path="/seo-management" element={<SeoManagerView />} />
               <Route path="/users" element={<UserManagementView />} />
-              <Route path="/visitors" element={<VisitorManagementView />} />
-              <Route path="/site-settings" element={<SiteSettingsView />} />
-              <Route path="/support" element={<SupportPanelView />} />
               <Route path="/roles" element={<RolesPermissionsView />} />
-              <Route path="/data-migration" element={<DataMigrationView />} />
             </Routes>
           </main>
         </div>
@@ -69,34 +57,16 @@ const Sidebar = ({ onLogout }) => {
     { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/admin/applications', icon: FileText, label: 'Applications' },
   ];
-  
+
   const contentNav = [
-    { path: '/admin/visa-management', icon: Briefcase, label: 'Visa Management' },
-    { path: '/admin/checklists', icon: ListChecks, label: 'Checklists' },
-    { path: '/admin/faqs', icon: HelpCircle, label: 'FAQ' },
-    { path: '/admin/content-management', icon: FileJson, label: 'Content' },
-  ];
-
-  const automationNav = [
-    { path: '/admin/automated-forms', icon: FilePlus, label: 'Automated Forms' },
-    { path: '/admin/covering-letters', icon: FileSignature, label: 'Covering Letters' },
-  ];
-
-  const growthNav = [
-    { path: '/admin/seo-management', icon: Megaphone, label: 'SEO' },
-    { path: '/admin/visitors', icon: Globe, label: 'Visitor Analytics' },
-  ];
-  
-  const siteManagementNav = [
-    { path: '/admin/site-settings', icon: Settings, label: 'Site Settings' },
-    { path: '/admin/users', icon: Users, label: 'User Management' },
-    { path: '/admin/roles', icon: Shield, label: 'Roles & Permissions' },
-  ];
-
-  const supportNav = [
-    { path: '/admin/support', icon: LifeBuoy, label: 'Support Center' },
-    { path: '/admin/data-migration', icon: Database, label: 'Data & Migration' },
-  ];
+  { path: '/admin/visa-management', icon: Briefcase, label: 'Visa Management' },
+  { path: '/admin/checklists', icon: ListChecks, label: 'Checklists' },
+  { path: '/admin/faqs', icon: HelpCircle, label: 'FAQ' },
+  { path: '/admin/content-management', icon: FileJson, label: 'Content' },
+  { path: '/admin/covering-letters', icon: FileSignature, label: 'Covering Letters' },
+  { path: '/admin/users', icon: Users, label: 'User Management' },
+  { path: '/admin/roles', icon: Shield, label: 'Roles & Permissions' },
+];
 
   const NavGroup = ({ title, items }) => (
     <div>
@@ -135,10 +105,6 @@ const Sidebar = ({ onLogout }) => {
       <nav className="flex-1 py-4 space-y-2 overflow-y-auto">
         <NavGroup items={mainNav} />
         <NavGroup title="Content" items={contentNav} />
-        <NavGroup title="Automation" items={automationNav} />
-        <NavGroup title="Growth" items={growthNav} />
-        <NavGroup title="Site Management" items={siteManagementNav} />
-        <NavGroup title="Support & Data" items={supportNav} />
       </nav>
       <div className="px-4 py-4 border-t border-slate-700/50">
         <button

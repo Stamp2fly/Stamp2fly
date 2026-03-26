@@ -8,6 +8,7 @@ import {
 	Info,
 	Sparkles,
 	AlertTriangle,
+	HelpCircle,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -231,6 +232,28 @@ function PricingPage() {
 								))}
 							</div>
 						</motion.div>
+
+						{countryData.faq?.length > 0 && (
+							<motion.div
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ delay: 0.45, duration: 0.5 }}
+								className="mt-8 bg-white p-8 rounded-2xl shadow-md border"
+							>
+								<h3 className="text-2xl font-bold text-gray-800 mb-6 text-center flex items-center justify-center">
+									<HelpCircle className="w-6 h-6 mr-2 text-blue-600" />
+									Frequently Asked Questions
+								</h3>
+								<div className="space-y-4">
+									{countryData.faq.map((item, index) => (
+										<div key={`${item.q}-${index}`} className="rounded-xl border border-gray-200 bg-slate-50 p-5">
+											<h4 className="text-base font-semibold text-gray-900">{item.q}</h4>
+											<p className="text-sm text-gray-700 mt-2 leading-relaxed">{item.a}</p>
+										</div>
+									))}
+								</div>
+							</motion.div>
+						)}
 
 						<div className="mt-10 text-center">
 							<Button
