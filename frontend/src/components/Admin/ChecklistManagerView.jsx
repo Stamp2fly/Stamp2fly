@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PlusCircle, Trash2, Save, ListChecks, ToggleLeft, ToggleRight, FileType } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useVisa } from '@/contexts/VisaContext';
+import { APPLICANT_TYPE_OPTIONS } from '@/constants/applicantTypes.js';
 
 const ChecklistManagerView = () => {
   const { visaData, updateVisaData } = useVisa();
@@ -18,10 +19,7 @@ const ChecklistManagerView = () => {
 
   const checklistCategories = [
     { value: 'base', label: 'Base Documents (for all)' },
-    { value: 'employed', label: 'Employed' },
-    { value: 'self-employed', label: 'Self-Employed' },
-    { value: 'student', label: 'Student' },
-    { value: 'sponsored', label: 'Sponsored' },
+    ...APPLICANT_TYPE_OPTIONS,
   ];
 
   useEffect(() => {

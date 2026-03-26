@@ -69,6 +69,9 @@ function PricingPage() {
 		}).format(amount);
 	};
 
+	const getEntry = (option) => option.entry || option.entryType || "Varies";
+	const getDuration = (option) => option.duration || option.stay || "Varies";
+
 	return (
 		<>
 			<Helmet>
@@ -127,20 +130,19 @@ function PricingPage() {
 										</h2>
 									</div>
 
-									<div className="bg-yellow-100 text-yellow-800 p-3 text-sm flex items-center">
-										<AlertTriangle className="w-5 h-5 mr-3" />
-										<span>
-											Your visa will not come in time before your departure
-											date. Your visa will be delivered on 31st Jul, 2025
-										</span>
-									</div>
+									{option.alertMessage && (
+										<div className="bg-yellow-100 text-yellow-800 p-3 text-sm https://docs.google.com/forms/d/e/1FAIpQLSeAwme3eG1zGWB_iFG21uxeYqphSb1LQb85Ey9zeRg63Wacxg/viewform?usp=publish-editorflex items-center">
+											<AlertTriangle className="w-5 h-5 mr-3" />
+											<span>{option.alertMessage}</span>
+										</div>
+									)}
 
 									<div className="p-6">
 										<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-6 items-center">
 											<div className="text-center">
 												<p className="text-sm text-gray-500">Entry</p>
 												<p className="font-semibold text-gray-800">
-													{option.entry}
+													{getEntry(option)}
 												</p>
 											</div>
 											<div className="text-center">
@@ -152,7 +154,7 @@ function PricingPage() {
 											<div className="text-center">
 												<p className="text-sm text-gray-500">Duration</p>
 												<p className="font-semibold text-gray-800">
-													{option.duration}
+													{getDuration(option)}
 												</p>
 											</div>
 											<div className="text-center">

@@ -125,7 +125,11 @@ function VisaRequirementPage() {
 		);
 	}
 
-	const pageTitle = `${destinationName} Visa Requirements for Indian Citizens | Stamp2Fly`;
+	const primaryOption = countryData.options?.[0] || null;
+	const visaTypeName = primaryOption?.name || "Tourist Visa";
+	const processingTime = primaryOption?.processingTime || "Varies";
+
+	const pageTitle = `${destinationName} Visa Requirements for ${nationality} Citizens | Stamp2Fly`;
 
 	const documentList = countryData.checklist?.base || [];
 	const faqSchema = countryData.faq?.length > 0
@@ -208,7 +212,7 @@ function VisaRequirementPage() {
 							{/* Category Badge */}
 							<div className="mt-4">
 								<span className="bg-blue-100 text-blue-700 text-sm font-medium px-4 py-1 rounded-full">
-									{countryData.options?.[0]?.name || "Tourist Visa"}
+									{visaTypeName}
 								</span>
 							</div>
 
@@ -235,7 +239,7 @@ function VisaRequirementPage() {
 								Processing Time
 							</h2>
 							<p className="text-gray-600">
-								{countryData.options?.[0]?.processingTime || "Varies"}
+								{processingTime}
 							</p>
 						</div>
 
@@ -256,7 +260,7 @@ function VisaRequirementPage() {
 						</div>
 						
 						<p className="mb-6 text-gray-700">
-							Below are the latest {destinationName} visa requirements for Indian passport holders.
+							Below are the latest {destinationName} visa requirements for {nationality} passport holders.
 							Ensure all documents are complete before submitting your application to avoid delays.
 						</p>
 

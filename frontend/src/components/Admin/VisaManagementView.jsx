@@ -9,13 +9,8 @@ import {
   PlusCircle,
   Trash2,
   Save,
-  HelpCircle,
   ListChecks,
   Flag,
-  DollarSign,
-  Clock,
-  Tag,
-  Edit,
 } from "lucide-react";
 import {
   Select,
@@ -34,10 +29,39 @@ import {
 } from "@/components/ui/dialog";
 import { useVisa } from "@/contexts/VisaContext";
 import { useNavigate } from "react-router-dom";
+import { APPLICANT_TYPE_OPTIONS } from "@/constants/applicantTypes.js";
+
+const normalizeOption = (option = {}) => ({
+  ...option,
+  entry: option.entry ?? option.entryType ?? "",
+  duration: option.duration ?? option.stay ?? "",
+});
+
+const normalizeVisaData = (data = {}) =>
+  Object.fromEntries(
+    Object.entries(data).map(([countryName, countryData]) => [
+      countryName,
+      {
+        ...countryData,
+        options: (countryData?.options || []).map(normalizeOption),
+      },
+    ]),
+  );
+
+const buildDefaultChecklist = () =>
+  APPLICANT_TYPE_OPTIONS.reduce(
+    (accumulator, option) => ({
+      ...accumulator,
+      [option.value]: [],
+    }),
+    { base: [] },
+  );
 
 const VisaManagementView = () => {
   const { visaData, updateVisaData } = useVisa();
-  const [localVisaData, setLocalVisaData] = useState(visaData);
+  const [localVisaData, setLocalVisaData] = useState(() =>
+    normalizeVisaData(visaData),
+  );
   const [selectedCountry, setSelectedCountry] = useState(
     Object.keys(localVisaData)[0] || "",
   );
@@ -47,14 +71,14 @@ const VisaManagementView = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setLocalVisaData(visaData);
+    setLocalVisaData(normalizeVisaData(visaData));
     if (!selectedCountry && Object.keys(visaData).length > 0) {
       setSelectedCountry(Object.keys(visaData)[0]);
     }
   }, [visaData, selectedCountry]);
 
   const handleSave = () => {
-    updateVisaData(localVisaData);
+    updateVisaData(normalizeVisaData(localVisaData));
     toast({
       title: "Visa Info Saved!",
       description: `Changes for ${selectedCountry} have been successfully saved.`,
@@ -84,14 +108,30 @@ const VisaManagementView = () => {
       {
         id: Date.now(),
         name: "New Visa Type",
-        entryType: "Single",
-        stay: "",
+        entry: "Single",
+        duration: "",
         validity: "",
         processingTime: "",
         price: 0,
         currency: "INR",
+        alertMessage: "",
+        fees: {
+          absconding: "",
+        },
       },
     ]);
+  };
+
+  const handleOptionFeesChange = (index, feeField, value) => {
+    const options = [...(localVisaData[selectedCountry]?.options || [])];
+    options[index] = {
+      ...options[index],
+      fees: {
+        ...(options[index]?.fees || {}),
+        [feeField]: value,
+      },
+    };
+    handleCountryFieldChange("options", options);
   };
 
   const handleRemoveOption = (index) => {
@@ -115,15 +155,10 @@ const VisaManagementView = () => {
       ...localVisaData,
       [newCountryName]: {
         options: [],
-        checklist: {
-          base: [],
-          employed: [],
-          "self-employed": [],
-          student: [],
-          sponsored: [],
-        },
+        checklist: buildDefaultChecklist(),
         faq: [],
         flag: "",
+        isoCode: "",
         source: "",
         isRecent: false,
       },
@@ -255,6 +290,17 @@ const VisaManagementView = () => {
                       placeholder="https://government-visa-website.com"
                     />
                   </div>
+                  <div>
+                    <Label htmlFor="isoCode">ISO Country Code</Label>
+                    <Input
+                      id="isoCode"
+                      value={currentData.isoCode || ""}
+                      onChange={(e) =>
+                        handleCountryFieldChange("isoCode", e.target.value.toLowerCase())
+                      }
+                      placeholder="e.g., ae, sg, us"
+                    />
+                  </div>
                   <div className="md:col-span-2 flex items-center space-x-3 border-t pt-4">
                     <Checkbox
                       id="isRecent"
@@ -306,11 +352,11 @@ const VisaManagementView = () => {
                           <div>
                             <Label>Entry Type</Label>
                             <Input
-                              value={option.entryType}
+                              value={option.entry || ""}
                               onChange={(e) =>
                                 handleOptionChange(
                                   index,
-                                  "entryType",
+                                  "entry",
                                   e.target.value,
                                 )
                               }
@@ -334,11 +380,11 @@ const VisaManagementView = () => {
                           <div>
                             <Label>Stay Duration</Label>
                             <Input
-                              value={option.stay}
+                              value={option.duration || ""}
                               onChange={(e) =>
                                 handleOptionChange(
                                   index,
-                                  "stay",
+                                  "duration",
                                   e.target.value,
                                 )
                               }
@@ -362,7 +408,7 @@ const VisaManagementView = () => {
                           <div>
                             <Label>Processing Time</Label>
                             <Input
-                              value={option.processingTime}
+                              value={option.processingTime || ""}
                               onChange={(e) =>
                                 handleOptionChange(
                                   index,
@@ -372,6 +418,54 @@ const VisaManagementView = () => {
                               }
                               placeholder="e.g., 5 Working Days"
                             />
+                          </div>
+                          <div>
+                            <Label>Original Price (Optional)</Label>
+                            <Input
+                              type="number"
+                              value={option.originalPrice || ""}
+                              onChange={(e) =>
+                                handleOptionChange(
+                                  index,
+                                  "originalPrice",
+                                  e.target.value ? parseFloat(e.target.value) : undefined,
+                                )
+                              }
+                            />
+                          </div>
+                          <div>
+                            <Label>Absconding Fee (Optional)</Label>
+                            <Input
+                              value={option.fees?.absconding || ""}
+                              onChange={(e) =>
+                                handleOptionFeesChange(index, "absconding", e.target.value)
+                              }
+                              placeholder="e.g., AED 5,000"
+                            />
+                          </div>
+                          <div className="md:col-span-3 space-y-2">
+                            <Label>Pricing Alert Message (Optional)</Label>
+                            <Input
+                              value={option.alertMessage || ""}
+                              onChange={(e) =>
+                                handleOptionChange(
+                                  index,
+                                  "alertMessage",
+                                  e.target.value,
+                                )
+                              }
+                              placeholder="Shown on Pricing page above this option"
+                            />
+                            <div className="flex items-center space-x-2 pt-1">
+                              <Checkbox
+                                id={`combo-${option.id}`}
+                                checked={Boolean(option.combo)}
+                                onCheckedChange={(checked) =>
+                                  handleOptionChange(index, "combo", Boolean(checked))
+                                }
+                              />
+                              <Label htmlFor={`combo-${option.id}`}>Mark as Combo Offer</Label>
+                            </div>
                           </div>
                         </div>
                       </div>

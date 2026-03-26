@@ -13,7 +13,7 @@ import ChecklistManagerView from '@/components/Admin/ChecklistManagerView';
 import FaqManagerView from '@/components/Admin/FaqManagerView';
 import UserManagementView from '@/components/Admin/UserManagementView';
 import RolesPermissionsView from '@/components/Admin/RolesPermissionsView';
-import ContentManagerView from '@/components/Admin/ContentManagerView';
+import ContentManagerView from '@/components/Admin/ContentManagerView.jsx';
 
 const AdminDashboard = ({ onLogout }) => {
   const navigate = useNavigate();

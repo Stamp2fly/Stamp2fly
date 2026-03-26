@@ -1,43 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, HelpCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import {
+	groupFaqsByPrimaryTag,
+	DEFAULT_FAQS,
+} from "@/constants/faqData.js";
+import { useFaq } from "@/contexts/FaqContext";
 import BackToHomeButton from "../components/BackHomePage";
-
-const faqData = {
-	General: [
-		{
-			q: "How long does the visa process take?",
-			a: "Processing times vary by country and visa type, but typically range from 3-15 business days. We also offer express services for faster processing.",
-		},
-		{
-			q: "What if my visa application is rejected?",
-			a: "While we have a high success rate, if a rejection occurs, we offer a money-back guarantee on our service fees and will assist you in understanding the reasons and reapplying if possible.",
-		},
-	],
-	Documents: [
-		{
-			q: "What documents are required?",
-			a: "Required documents depend on the destination country and visa type. After you select a country, we provide a personalized checklist. Common documents include passport, photos, and application forms.",
-		},
-		{
-			q: "How do I submit my documents?",
-			a: "You can securely upload all required documents through our online portal after starting your application.",
-		},
-	],
-	Payment: [
-		{
-			q: "What payment methods do you accept?",
-			a: "We accept all major credit cards, debit cards, and online payment wallets.",
-		},
-		{
-			q: "Are there any hidden fees?",
-			a: "No, our pricing is transparent. The total cost, including consular fees and our service charges, is clearly outlined before you make a payment.",
-		},
-	],
-};
 
 const FaqItem = ({ q, a }) => {
 	const [isOpen, setIsOpen] = useState(false);
@@ -69,7 +41,25 @@ const FaqItem = ({ q, a }) => {
 };
 
 const FaqPage = () => {
+	const { faqs } = useFaq();
+
+	const faqData = useMemo(
+		() => groupFaqsByPrimaryTag(faqs.length ? faqs : DEFAULT_FAQS),
+		[faqs],
+	);
+	const categories = useMemo(() => Object.keys(faqData), [faqData]);
 	const [activeCategory, setActiveCategory] = useState("General");
+
+	useEffect(() => {
+		if (categories.length === 0) {
+			setActiveCategory("");
+			return;
+		}
+
+		if (!categories.includes(activeCategory)) {
+			setActiveCategory(categories[0]);
+		}
+	}, [categories, activeCategory]);
 
 	const faqSchema = {
 		"@context": "https://schema.org",
@@ -134,7 +124,7 @@ const FaqPage = () => {
               ))}
             </div> */}
 						<div className="flex justify-center flex-wrap gap-3 mb-14">
-							{Object.keys(faqData).map((category) => (
+							{categories.map((category) => (
 								<button
 									key={category}
 									onClick={() => setActiveCategory(category)}
@@ -150,7 +140,7 @@ const FaqPage = () => {
 						</div>
 
 						<div>
-							{faqData[activeCategory].map((item, index) => (
+							{(faqData[activeCategory] || []).map((item, index) => (
 								<FaqItem key={index} q={item.q} a={item.a} />
 							))}
 						</div>

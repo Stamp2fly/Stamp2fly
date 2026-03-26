@@ -1,18 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PlusCircle, Trash2, Save, Tag } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-
-const initialFaqs = [
-  { id: 1, q: 'Is travel insurance mandatory?', a: 'Yes, for most visa types, travel insurance is required.', tags: ['Documents', 'Insurance'] },
-  { id: 2, q: 'Can I get a visa on arrival?', a: 'This depends on the country and your nationality. Please check specific requirements.', tags: ['Processing'] },
-  { id: 3, q: 'How long does visa processing take?', a: 'Processing times vary by country and visa type. Check the specific country page for details.', tags: ['Processing', 'Timeline'] },
-];
+import { useFaq } from '@/contexts/FaqContext';
 
 const FaqManagerView = () => {
-  const [faqs, setFaqs] = useState(initialFaqs);
+  const { faqs, setFaqs } = useFaq();
   const { toast } = useToast();
 
   const handleAddFaq = () => {
@@ -38,6 +33,16 @@ const FaqManagerView = () => {
   };
 
   const handleSave = () => {
+    const sanitizedFaqs = faqs
+      .map((faq) => ({
+        ...faq,
+        q: faq.q.trim(),
+        a: faq.a.trim(),
+        tags: (faq.tags || []).map((tag) => tag.trim()).filter(Boolean),
+      }))
+      .filter((faq) => faq.q && faq.a);
+
+    setFaqs(sanitizedFaqs);
     toast({ title: "FAQs Saved!", description: "Your changes have been successfully saved.", className: "bg-green-500 text-white" });
   };
   
