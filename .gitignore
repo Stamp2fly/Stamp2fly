@@ -27,3 +27,5 @@ Thumbs.db
 # IDE specific files (optional)
 .vscode
 .idea
+**/dist/
+.vscode/
