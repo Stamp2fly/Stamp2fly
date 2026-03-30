@@ -1,17 +1,18 @@
 import mongoose from "mongoose";
 
-const userschema = new mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
-    fullname: {
+    fullName: {
       type: String,
+      default: "",
     },
     email: {
       type: String,
       unique: true,
-      spase: true,
+      sparse: true,
     },
     phone: {
-      type: Number,
+      type: String,
       unique: true,
       sparse: true,
     },
@@ -20,6 +21,25 @@ const userschema = new mongoose.Schema(
       enum: ["user", "super_admin", "team"],
       default: "user",
     },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    authProvider: {
+      type: String,
+      enum: ["google", "email"],
+      required: true,
+    },
+    opt: {
+      type: String,
+      otpExpiry: Date,
+    },
+    isVerified: {
+      type: Boolean,
+      default: true,
+    },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
+export const User = mongoose.model("User", userSchema);
