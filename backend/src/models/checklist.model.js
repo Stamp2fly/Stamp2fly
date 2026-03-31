@@ -1,22 +1,15 @@
 import mongoose from "mongoose";
 
 const checklistItemSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
+  name: String,
   description: String,
-
-  isRequired: {
-    type: Boolean,
-    default: true,
-  },
 });
 
 const checklistSchema = new mongoose.Schema(
   {
     country: {
-      type: String, // or ObjectId later
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Country",
       required: true,
     },
 
@@ -24,7 +17,7 @@ const checklistSchema = new mongoose.Schema(
       type: String,
       enum: [
         "base",
-        "employee",
+        "salaried",
         "self-employed",
         "student",
         "freelancer",

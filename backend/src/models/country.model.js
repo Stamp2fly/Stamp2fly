@@ -32,7 +32,7 @@ const countrySchema = new mongoose.Schema(
   {
     countryName: {
       type: String,
-      required: true,
+      // required: true,
     },
 
     isoCode: String,

@@ -17,17 +17,17 @@ const applicationSchema = new mongoose.Schema(
     // Traveller Details
     fullName: {
       type: String,
-      required: true,
+      // required: true,
     },
 
     age: {
       type: Number,
-      required: true,
+      // required: true,
     },
 
     phone: {
       type: String,
-      required: true,
+      // required: true,
     },
 
     email: String,
@@ -35,18 +35,18 @@ const applicationSchema = new mongoose.Schema(
     travelDates: {
       from: {
         type: Date,
-        required: true,
+        // required: true,
       },
       to: {
         type: Date,
-        required: true,
+        // required: true,
       },
     },
 
     maritalStatus: {
       type: String,
       enum: ["single", "married"],
-      required: true,
+      // required: true,
     },
 
     occupation: {
@@ -59,28 +59,28 @@ const applicationSchema = new mongoose.Schema(
         "unemployed",
         "freelancer",
       ],
-      required: true,
+      // required: true,
     },
 
     sponsorship: {
       type: String,
       enum: ["self", "family", "company"],
-      required: true,
+      // required: true,
     },
 
     // 📄 Documents
     documents: {
       passportFront: {
         type: String,
-        required: true,
+        // required: true,
       },
       passportBack: {
         type: String,
-        required: true,
+        // required: true,
       },
       passportPhoto: {
         type: String,
-        required: true,
+        // required: true,
       },
     },
 
@@ -104,4 +104,4 @@ const applicationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Application = mongoose.model("Application", applicationSchema);
+export default mongoose.model("Application", applicationSchema);
