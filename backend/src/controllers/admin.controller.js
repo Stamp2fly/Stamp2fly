@@ -1,3 +1,4 @@
+import User from "../models/user.model.js";
 import Application from "../models/application.model.js";
 
 // GET ALL APPLICATIONS
@@ -56,5 +57,36 @@ export const updateApplicationStatus = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+
+export const createAdminUser = async (req, res) => {
+  try {
+    const { fullname, email, phone, role } = req.body;
+
+    const user = await User.create({
+      fullname,
+      email,
+      phone,
+      role,
+    });
+
+    res.status(201).json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select("-otp -otpExpiry");
+
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
   }
 };

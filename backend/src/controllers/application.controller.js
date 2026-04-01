@@ -1,5 +1,7 @@
 import Application from "../models/application.model.js";
 import uploadToCloudinary from "../utils/uploadToCloudinary.js";
+import Checklist from "../models/checklist.model.js";
+
 
 // CREATE
 export const createApplication = async (req, res) => {
@@ -114,52 +116,105 @@ export const getAllApplications = async (req, res) => {
   }
 };
 
+// export const submitApplication = async (req, res) => {
+//   try {
+//     const app = await Application.findById(req.params.id);
+
+//     if (!app) {
+//       return res.status(404).json({ message: "Application not found" });
+//     }
+
+//     // 🔥 VALIDATION BEFORE SUBMIT
+
+//     if (
+//       !app.fullName ||
+//       !app.age ||
+//       !app.phone ||
+//       !app.occupation ||
+//       !app.sponsorship
+//     ) {
+//       return res.status(400).json({
+//         message: "Please fill all traveller details",
+//       });
+//     }
+
+//     if (
+//       !app.documents?.passportFront ||
+//       !app.documents?.passportBack ||
+//       !app.documents?.passportPhoto
+//     ) {
+//       return res.status(400).json({
+//         message: "Please upload all required documents",
+//       });
+//     }
+
+//     if (!app.financialDetails?.documents?.length) {
+//       return res.status(400).json({
+//         message: "Please upload financial documents",
+//       });
+//     }
+
+//     // 🔥 All good → submit
+//     app.status = "submitted";
+
+//     await app.save();
+
+//     res.json({
+//       message: "Application submitted successfully",
+//       app,
+//     });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
 export const submitApplication = async (req, res) => {
   try {
-    const app = await Application.findById(req.params.id);
+    const application = await Application.findById(req.params.id);
 
-    if (!app) {
+    if (!application) {
       return res.status(404).json({ message: "Application not found" });
     }
 
-    // 🔥 VALIDATION BEFORE SUBMIT
+    // STEP 1: get checklist
+    const baseChecklist = await Checklist.findOne({
+      country: application.country,
+      category: "base",
+    });
 
-    if (
-      !app.fullName ||
-      !app.age ||
-      !app.phone ||
-      !app.occupation ||
-      !app.sponsorship
-    ) {
+    const specificChecklist = await Checklist.findOne({
+      country: application.country,
+      category: application.occupation,
+    });
+
+    const requiredItems = [
+      ...(baseChecklist?.items || []),
+      ...(specificChecklist?.items || []),
+    ];
+
+    // STEP 2: collect uploaded docs
+    const uploadedDocs = [
+      application.documents?.passportFront,
+      application.documents?.passportBack,
+      application.documents?.passportPhoto,
+      ...(application.financialDetails?.documents || []),
+    ].filter(Boolean);
+
+    // STEP 3: VALIDATION
+    if (uploadedDocs.length < requiredItems.length) {
       return res.status(400).json({
-        message: "Please fill all traveller details",
+        message: "Missing required documents",
+        required: requiredItems.length,
+        uploaded: uploadedDocs.length,
       });
     }
 
-    if (
-      !app.documents?.passportFront ||
-      !app.documents?.passportBack ||
-      !app.documents?.passportPhoto
-    ) {
-      return res.status(400).json({
-        message: "Please upload all required documents",
-      });
-    }
-
-    if (!app.financialDetails?.documents?.length) {
-      return res.status(400).json({
-        message: "Please upload financial documents",
-      });
-    }
-
-    // 🔥 All good → submit
-    app.status = "submitted";
-
-    await app.save();
+    // STEP 4: submit
+    application.status = "submitted";
+    await application.save();
 
     res.json({
       message: "Application submitted successfully",
-      app,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

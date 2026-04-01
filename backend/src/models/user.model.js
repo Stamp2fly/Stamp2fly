@@ -28,12 +28,15 @@ const userSchema = new mongoose.Schema(
     },
     authProvider: {
       type: String,
-      enum: ["google", "email"],
-      required: true,
+      enum: ["google", "phone"],
+      // required: true,
     },
-    opt: {
+    otp: {
       type: String,
       otpExpiry: Date,
+    },
+    otpExpiry: {
+      type: Date,
     },
     isVerified: {
       type: Boolean,
@@ -42,4 +45,4 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-export const User = mongoose.model("User", userSchema);
+export default mongoose.model("User", userSchema);
