@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import WhatsAppButton from "../components/WhatsAppButton";
 import MapEmbed from "../components/MapEmbed";
-import BackButton from "../components/Admin/BackButton";
+import BackButton from "../components/BackButton";
 import BackToHomeButton from "../components/BackHomePage";
 
 const ContactPage = () => {

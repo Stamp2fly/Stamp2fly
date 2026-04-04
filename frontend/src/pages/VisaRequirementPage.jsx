@@ -16,7 +16,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useVisa } from "@/contexts/VisaContext";
 import { Button } from "@/components/ui/button";
-import BackButton from "../components/Admin/BackButton";
+import BackButton from "../components/BackButton";
 import WhatsAppButton from "../components/WhatsAppButton";
 
 function VisaRequirementPage() {

@@ -15,7 +15,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { useVisa } from "@/contexts/VisaContext";
 import { cn } from "@/lib/utils";
-import BackButton from "../components/Admin/BackButton";
+import BackButton from "../components/BackButton";
 import WhatsAppButton from "../components/WhatsAppButton";
 import BackToHomeButton from "../components/BackHomePage";
 
