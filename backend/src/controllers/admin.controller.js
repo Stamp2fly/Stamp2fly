@@ -83,12 +83,67 @@ export const createAdminUser = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-otp -otpExpiry");
+    const { role } = req.query;
+    const filter = role ? { role } : {};
+    const users = await User.find(filter).select("-otp -otpExpiry");
 
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({
       message: error.message,
     });
+  }
+};
+
+// GET DASHBOARD STATS
+export const getDashboardStats = async (req, res) => {
+  try {
+    const totalApplications = await Application.countDocuments();
+    const activeUsers = await User.countDocuments({ role: "user" });
+    const teamMembers = await User.countDocuments({ role: "team" });
+    
+    // Get status breakdown
+    const statusBreakdown = await Application.aggregate([
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          status: "$_id",
+          count: 1,
+          _id: 0,
+        },
+      },
+    ]);
+
+    // Get recent applications
+    const recentApplications = await Application.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select("_id fullName country status createdAt");
+
+    // Calculate summary stats
+    const approvedCount = statusBreakdown.find(s => s.status === "approved")?.count || 0;
+    const inProgressCount = statusBreakdown.find(s => s.status === "in-review")?.count || 0;
+    const actionNeededCount = statusBreakdown.find(s => s.status === "submitted")?.count || 0;
+    const rejectedCount = statusBreakdown.find(s => s.status === "rejected")?.count || 0;
+
+    res.json({
+      totalApplications,
+      activeUsers,
+      teamMembers,
+      statusBreakdown: [
+        { name: "Approved", value: approvedCount },
+        { name: "In Progress", value: inProgressCount },
+        { name: "Action Needed", value: actionNeededCount },
+        { name: "Rejected", value: rejectedCount },
+      ],
+      recentApplications,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

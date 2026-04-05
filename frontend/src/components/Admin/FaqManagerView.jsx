@@ -7,10 +7,11 @@ import { useToast } from '@/components/ui/use-toast';
 import { useFaq } from '@/contexts/FaqContext';
 import { useVisa } from '@/contexts/VisaContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { replaceFaqCollection } from '@/api/adminApi';
 
 const FaqManagerView = () => {
-  const { faqs, setFaqs } = useFaq();
-  const { visaData, updateVisaData } = useVisa();
+  const { faqs, setFaqs, refreshFaqs } = useFaq();
+  const { visaData, refreshVisaData } = useVisa();
   const { toast } = useToast();
   const [faqType, setFaqType] = useState('general');
   const countries = useMemo(() => Object.keys(visaData), [visaData]);
@@ -60,7 +61,7 @@ const FaqManagerView = () => {
     setEditableFaqs(newFaqs);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const sanitizedFaqs = editableFaqs
       .map((faq) => ({
         ...faq,
@@ -71,33 +72,66 @@ const FaqManagerView = () => {
       .filter((faq) => faq.q && faq.a);
 
     if (faqType === 'general') {
-      setFaqs(sanitizedFaqs);
-      toast({
-        title: 'General FAQs Saved!',
-        description: 'General FAQ changes have been successfully saved.',
-        className: 'bg-green-500 text-white',
-      });
+      try {
+        await replaceFaqCollection({
+          isGlobal: true,
+          faqs: sanitizedFaqs.map((faq, index) => ({
+            question: faq.q,
+            answer: faq.a,
+            tags: faq.tags || [],
+            order: index,
+          })),
+        });
+
+        setFaqs(sanitizedFaqs);
+        await refreshFaqs();
+
+        toast({
+          title: 'General FAQs Saved!',
+          description: 'General FAQ changes are now visible on the site.',
+          className: 'bg-green-500 text-white',
+        });
+      } catch (error) {
+        toast({
+          title: 'Save failed',
+          description: error?.response?.data?.message || 'Could not save general FAQs.',
+          variant: 'destructive',
+        });
+      }
       return;
     }
 
-    if (!selectedCountry) {
+    if (!selectedCountry || !visaData[selectedCountry]?._id) {
       toast({ title: 'No Country Selected', description: 'Please select a country.', variant: 'destructive' });
       return;
     }
 
-    const countryFaqs = sanitizedFaqs.map(({ q, a }) => ({ q, a }));
-    updateVisaData({
-      ...visaData,
-      [selectedCountry]: {
-        ...visaData[selectedCountry],
-        faq: countryFaqs,
-      },
-    });
-    toast({
-      title: 'Country FAQs Saved!',
-      description: `FAQs for ${selectedCountry} have been successfully saved.`,
-      className: 'bg-green-500 text-white',
-    });
+    try {
+      await replaceFaqCollection({
+        isGlobal: false,
+        countryId: visaData[selectedCountry]._id,
+        faqs: sanitizedFaqs.map((faq, index) => ({
+          question: faq.q,
+          answer: faq.a,
+          tags: faq.tags || [],
+          order: index,
+        })),
+      });
+
+      await refreshVisaData();
+
+      toast({
+        title: 'Country FAQs Saved!',
+        description: `FAQs for ${selectedCountry} are now visible on the site.`,
+        className: 'bg-green-500 text-white',
+      });
+    } catch (error) {
+      toast({
+        title: 'Save failed',
+        description: error?.response?.data?.message || 'Could not save country FAQs.',
+        variant: 'destructive',
+      });
+    }
   };
   
   const containerVariants = {
@@ -113,7 +147,7 @@ const FaqManagerView = () => {
     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-8">
       <motion.div variants={itemVariants} className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-800">FAQ Manager</h1>
-        <Button onClick={handleSave} className="bg-emerald-600 hover:bg-emerald-700">
+        <Button onClick={handleSave} className="bg-slate-800 hover:bg-slate-900 text-white">
           <Save className="mr-2 h-4 w-4" /> Save FAQs
         </Button>
       </motion.div>

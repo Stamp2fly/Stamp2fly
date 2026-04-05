@@ -10,6 +10,7 @@ import ContactPage from '@/pages/ContactPage';
 import ConsultationPage from '@/pages/ConsultationPage';
 import PaymentPage from '@/pages/PaymentPage';
 import AuthPage from '@/pages/AuthPage';
+import UserDashboard from '@/pages/UserDashboard';
 import { Toaster } from '@/components/ui/toaster';
 import { VisaProvider } from '@/contexts/VisaContext';
 import { ApplicationProvider } from '@/contexts/ApplicationContext';
@@ -117,6 +118,14 @@ const ProtectedRoute = ({ children, isAuthenticated, isAdmin }) => {
   return children;
 };
 
+const AuthenticatedRoute = ({ children, isAuthenticated }) => {
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
+
 const LegacyVisaRequirementRedirect = () => {
   const { destination } = useParams();
   const { search } = useLocation();
@@ -150,6 +159,14 @@ function App() {
                   <Route path="/payment" element={<PaymentPage />} />
                   <Route path="/login" element={<AuthPage />} />
                   <Route path="/signup" element={<AuthPage />} />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <AuthenticatedRoute isAuthenticated={isAuthenticated}>
+                        <UserDashboard />
+                      </AuthenticatedRoute>
+                    }
+                  />
                   <Route path="/admin/login" element={<Navigate to="/login" replace />} />
                   <Route path="/consultation" element={<ConsultationPage />} />
                   <Route path="/about" element={<AboutUsPage />} />

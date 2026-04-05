@@ -9,6 +9,7 @@ import {
   deleteApplication,
   submitApplication,
   getAllApplications,
+  addApplicationMessage,
 //   uploadDocuments,
 } from "../controllers/application.controller.js";
 
@@ -42,5 +43,7 @@ router.post(
   ]),
   uploadDocuments
 );
+
+router.post("/:id/messages", addApplicationMessage);
 
 export default router;

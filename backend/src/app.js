@@ -5,6 +5,7 @@ import adminRoutes from "./routes/admin.routes.js";
 import checklistRoutes from "./routes/checklist.routes.js";
 import countryRoutes from "./routes/country.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import faqRoutes from "./routes/faq.routes.js";
 
 
 const app = express();
@@ -36,5 +37,8 @@ app.use("/api/checklist", checklistRoutes);
 
 // auth routes
 app.use("/api/auth", authRoutes);
+
+// faq routes
+app.use("/api/faqs", faqRoutes);
 
 export default app;

@@ -11,20 +11,8 @@ import {
 
 const router = express.Router();
 
-// CREATE
-// router.post("/", createCountry);
-
-// // GET ALL
-// router.get("/", getAllCountries);
-
-// // GET ONE
-// router.get("/:id", getSingleCountry);
-
-// // UPDATE
-// router.put("/:id", updateCountry);
-
-// // DELETE
-// router.delete("/:id", deleteCountry);
+router.get("/", getAllCountries);
+router.get("/:id", getSingleCountry);
 
 router.post("/", protect, authorize("super_admin", "team"), createCountry);
 router.put("/:id", protect, authorize("super_admin", "team"), updateCountry);

@@ -20,6 +20,8 @@ function Header(props) {
 
 	const fullName = authUser?.fullName?.trim() || "";
 	const isLoggedIn = Boolean(localStorage.getItem("authToken"));
+	const normalizedRole = String(authUser?.role || "").toLowerCase().replace(/[\s-]+/g, "_");
+	const isAdmin = normalizedRole === "super_admin" || normalizedRole === "team" || normalizedRole === "admin";
 	const displayName = fullName || authUser?.phone || "User";
 
 	const handleLogout = () => {
@@ -69,6 +71,11 @@ function Header(props) {
 					<div className="flex items-center">
 						{isLoggedIn ? (
 							<div className="hidden md:flex items-center gap-2 mr-3">
+								{!isAdmin && (
+									<Button asChild variant="outline" className="rounded-lg px-3">
+										<Link to="/dashboard">My Applications</Link>
+									</Button>
+								)}
 								<div className="flex items-center rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 bg-white">
 									<User className="h-4 w-4 mr-2 text-gray-500" />
 									{displayName}
@@ -91,6 +98,11 @@ function Header(props) {
 
 						{isLoggedIn && (
 							<div className="md:hidden mr-2 flex items-center gap-1">
+								{!isAdmin && (
+									<Button asChild variant="outline" size="sm" className="px-2 text-xs">
+										<Link to="/dashboard">My Apps</Link>
+									</Button>
+								)}
 								<div className="flex items-center rounded-md border border-gray-200 px-2 py-1 text-xs font-medium text-gray-700 bg-white max-w-[120px] truncate">
 									<User className="h-3.5 w-3.5 mr-1 text-gray-500 shrink-0" />
 									<span className="truncate">{displayName}</span>

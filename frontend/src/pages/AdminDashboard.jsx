@@ -1,6 +1,6 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
-import { Routes, Route, NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   LayoutDashboard, FileText, Users, Bell, UserCircle, LogOut, Briefcase, FilePlus, FileSignature, ListChecks, HelpCircle, Shield, LifeBuoy, Database, FileJson, Megaphone, Globe, Settings
@@ -15,12 +15,79 @@ import UserManagementView from '@/components/Admin/UserManagementView';
 import RolesPermissionsView from '@/components/Admin/RolesPermissionsView';
 import ContentManagerView from '@/components/Admin/ContentManagerView.jsx';
 
+const normalizeRole = (role) => String(role || '').toLowerCase().replace(/[\s-]+/g, '_');
+
+const getAuthUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem('authUser') || 'null');
+  } catch {
+    return null;
+  }
+};
+
+const roleLabel = (role) => {
+  const normalized = normalizeRole(role);
+  if (normalized === 'super_admin' || normalized === 'admin') {
+    return 'Super Admin';
+  }
+  if (normalized === 'team') {
+    return 'Team';
+  }
+  return 'User';
+};
+
 const AdminDashboard = ({ onLogout }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const authUser = getAuthUser();
+  const normalizedRole = normalizeRole(authUser?.role);
+  const isSuperAdmin = normalizedRole === 'super_admin' || normalizedRole === 'admin';
+  const displayName = authUser?.fullName || authUser?.phone || 'Admin User';
+  const currentAdminPath = location.pathname.replace(/^\/admin\/?/, '');
+
+  const renderCurrentView = () => {
+    if (!currentAdminPath) {
+      return <DashboardView />;
+    }
+
+    if (currentAdminPath === 'applications') {
+      return <ApplicationsView />;
+    }
+
+    if (currentAdminPath === 'visa-management') {
+      return <VisaManagementView />;
+    }
+
+    if (currentAdminPath === 'covering-letters') {
+      return <CoveringLetterView />;
+    }
+
+    if (currentAdminPath === 'checklists') {
+      return <ChecklistManagerView />;
+    }
+
+    if (currentAdminPath === 'faqs') {
+      return <FaqManagerView />;
+    }
+
+    if (currentAdminPath === 'users') {
+      return <UserManagementView />;
+    }
+
+    if (currentAdminPath === 'content-management') {
+      return isSuperAdmin ? <ContentManagerView /> : <Navigate to="/admin" replace />;
+    }
+
+    if (currentAdminPath === 'roles') {
+      return isSuperAdmin ? <RolesPermissionsView /> : <Navigate to="/admin" replace />;
+    }
+
+    return <Navigate to="/admin" replace />;
+  };
 
   const handleLogout = () => {
     onLogout();
-    navigate('/admin/login');
+    navigate('/login');
   };
 
   return (
@@ -30,21 +97,11 @@ const AdminDashboard = ({ onLogout }) => {
         <meta name="description" content="Manage visa applications, website content, SEO, and users." />
       </Helmet>
       <div className="flex min-h-screen bg-slate-100 font-sans">
-        <Sidebar onLogout={handleLogout} />
+        <Sidebar onLogout={handleLogout} isSuperAdmin={isSuperAdmin} />
         <div className="flex-1 flex flex-col lg:ml-64">
-          <AdminHeader onLogout={handleLogout} />
+          <AdminHeader displayName={displayName} roleText={roleLabel(normalizedRole)} />
           <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-            <Routes>
-              <Route path="/" element={<DashboardView />} />
-              <Route path="/applications" element={<ApplicationsView />} />
-              <Route path="/visa-management" element={<VisaManagementView />} />
-              <Route path="/covering-letters" element={<CoveringLetterView />} />
-              <Route path="/checklists" element={<ChecklistManagerView />} />
-              <Route path="/faqs" element={<FaqManagerView />} />
-              <Route path="/content-management" element={<ContentManagerView />} />
-              <Route path="/users" element={<UserManagementView />} />
-              <Route path="/roles" element={<RolesPermissionsView />} />
-            </Routes>
+            {renderCurrentView()}
           </main>
         </div>
       </div>
@@ -52,21 +109,25 @@ const AdminDashboard = ({ onLogout }) => {
   );
 };
 
-const Sidebar = ({ onLogout }) => {
+const Sidebar = ({ onLogout, isSuperAdmin }) => {
   const mainNav = [
     { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/admin/applications', icon: FileText, label: 'Applications' },
   ];
 
   const contentNav = [
-  { path: '/admin/visa-management', icon: Briefcase, label: 'Visa Management' },
-  { path: '/admin/checklists', icon: ListChecks, label: 'Checklists' },
-  { path: '/admin/faqs', icon: HelpCircle, label: 'FAQ' },
-  { path: '/admin/content-management', icon: FileJson, label: 'Content' },
-  { path: '/admin/covering-letters', icon: FileSignature, label: 'Covering Letters' },
-  { path: '/admin/users', icon: Users, label: 'User Management' },
-  { path: '/admin/roles', icon: Shield, label: 'Roles & Permissions' },
-];
+    { path: '/admin/visa-management', icon: Briefcase, label: 'Visa Management' },
+    { path: '/admin/checklists', icon: ListChecks, label: 'Checklists' },
+    { path: '/admin/faqs', icon: HelpCircle, label: 'FAQ' },
+    { path: '/admin/covering-letters', icon: FileSignature, label: 'Covering Letters' },
+    { path: '/admin/users', icon: Users, label: 'User Management' },
+    ...(isSuperAdmin
+      ? [
+          { path: '/admin/content-management', icon: FileJson, label: 'Content' },
+          { path: '/admin/roles', icon: Shield, label: 'Roles & Permissions' },
+        ]
+      : []),
+  ];
 
   const NavGroup = ({ title, items }) => (
     <div>
@@ -119,7 +180,7 @@ const Sidebar = ({ onLogout }) => {
   );
 };
 
-const AdminHeader = ({ onLogout }) => (
+const AdminHeader = ({ displayName, roleText }) => (
   <header className="bg-white/80 backdrop-blur-sm h-20 border-b flex items-center justify-between px-8 sticky top-0 z-30">
     <div>
       {/* Breadcrumbs or dynamic page title can be added here */}
@@ -134,8 +195,8 @@ const AdminHeader = ({ onLogout }) => (
             <UserCircle className="w-6 h-6 text-slate-500" />
         </div>
         <div className="text-left hidden sm:block">
-            <p className="text-sm font-semibold text-slate-800">Admin User</p>
-            <p className="text-xs text-slate-500">Super Admin</p>
+            <p className="text-sm font-semibold text-slate-800">{displayName}</p>
+            <p className="text-xs text-slate-500">{roleText}</p>
         </div>
       </div>
     </div>

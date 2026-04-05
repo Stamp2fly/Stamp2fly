@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,109 +18,146 @@ import {
 } from "@/components/ui/select";
 import {
   FileText,
-  Download,
   Eye,
-  MessageSquare,
   Send,
-  Upload,
   Paperclip,
   PlusCircle,
   Search,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-
-const mockApplications = [
-  {
-    id: "S2F-1001",
-    name: "John Doe",
-    country: "United States",
-    status: "In Progress",
-    date: "2025-07-01",
-    documents: [{ name: "Passport.pdf" }, { name: "Visa Photo.jpg" }],
-    messages: [],
-    notes: "",
-  },
-  {
-    id: "S2F-1002",
-    name: "Jane Smith",
-    country: "Canada",
-    status: "Approved",
-    date: "2025-06-28",
-    documents: [{ name: "Passport_Jane.pdf" }],
-    messages: [{ sender: "admin", text: "Your visa is approved!" }],
-    notes: "Confirmed flight details.",
-  },
-  {
-    id: "S2F-1003",
-    name: "Peter Jones",
-    country: "United Kingdom",
-    status: "Requires Action",
-    date: "2025-07-02",
-    documents: [],
-    messages: [{ sender: "admin", text: "Please upload your bank statement." }],
-    notes: "Followed up via email.",
-  },
-  {
-    id: "S2F-1004",
-    name: "Mary Johnson",
-    country: "Australia",
-    status: "Rejected",
-    date: "2025-06-30",
-    documents: [
-      { name: "Passport.pdf" },
-      { name: "Photo.jpg" },
-      { name: "Itinerary.pdf" },
-    ],
-    messages: [],
-    notes: "Insufficient funds.",
-  },
-  {
-    id: "S2F-1005",
-    name: "David Williams",
-    country: "United States",
-    status: "In Progress",
-    date: "2025-07-03",
-    documents: [{ name: "Passport.pdf" }],
-    messages: [],
-    notes: "",
-  },
-];
+import { getApplications, updateApplicationStatus, getApplicationById, sendApplicationMessage } from "@/api/adminApi";
 
 const statusColors = {
-  "In Progress": "bg-blue-100 text-blue-800 border-blue-300",
-  Approved: "bg-emerald-100 text-emerald-800 border-emerald-300",
-  "Requires Action": "bg-yellow-100 text-yellow-800 border-yellow-300",
-  Rejected: "bg-red-100 text-red-800 border-red-300",
+  "draft": "bg-gray-100 text-gray-800 border-gray-300",
+  "submitted": "bg-blue-100 text-blue-800 border-blue-300",
+  "in-review": "bg-yellow-100 text-yellow-800 border-yellow-300",
+  "approved": "bg-emerald-100 text-emerald-800 border-emerald-300",
+  "rejected": "bg-red-100 text-red-800 border-red-300",
+};
+
+const buildSubmittedDocuments = (application) => {
+  const docs = [];
+  const primary = application?.documents || {};
+  const financial = application?.financialDetails?.documents || [];
+
+  if (primary.passportFront) {
+    docs.push({ label: "Passport Front", url: primary.passportFront });
+  }
+  if (primary.passportBack) {
+    docs.push({ label: "Passport Back", url: primary.passportBack });
+  }
+  if (primary.passportPhoto) {
+    docs.push({ label: "Passport Photo", url: primary.passportPhoto });
+  }
+
+  financial.forEach((url, index) => {
+    if (url) {
+      docs.push({ label: `Financial Document ${index + 1}`, url });
+    }
+  });
+
+  return docs;
 };
 
 const ApplicationsView = () => {
-  const [applications, setApplications] = useState(mockApplications);
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [filters, setFilters] = useState({
     status: "all",
-    country: "all",
     search: "",
   });
+  const { toast } = useToast();
 
-  const handleStatusChange = (appId, newStatus) => {
-    setApplications((prevApps) =>
-      prevApps.map((app) =>
-        app.id === appId ? { ...app, status: newStatus } : app,
-      ),
-    );
+  const openApplication = async (app) => {
+    try {
+      const details = await getApplicationById(app._id);
+      setSelectedApplication(details);
+    } catch (error) {
+      setSelectedApplication(app);
+      toast({
+        title: "Could not load full application",
+        description: error?.response?.data?.message || "Showing available data only.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const syncSelectedApplication = (nextApplication) => {
+    setSelectedApplication(nextApplication);
+    setApplications((prev) => prev.map((item) => (item._id === nextApplication._id ? nextApplication : item)));
+  };
+
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        setLoading(true);
+        const data = await getApplications();
+        setApplications(data || []);
+      } catch (error) {
+        toast({
+          title: 'Failed to load applications',
+          description: error?.response?.data?.message || 'Could not load applications.',
+          variant: 'destructive',
+        });
+        console.error('Applications fetch error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApplications();
+  }, [toast]);
+
+  const handleStatusChange = async (appId, newStatus) => {
+    try {
+      await updateApplicationStatus(appId, newStatus);
+      setApplications((prevApps) =>
+        prevApps.map((app) =>
+          app._id === appId ? { ...app, status: newStatus } : app,
+        ),
+      );
+      toast({
+        title: "Status updated",
+        description: `Application status changed to ${newStatus}.`,
+        className: "bg-emerald-600 text-white",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to update status",
+        description: error?.response?.data?.message || "An error occurred.",
+        variant: "destructive",
+      });
+    }
   };
 
   const filteredApplications = applications.filter((app) => {
     return (
       (filters.status !== "all" ? app.status === filters.status : true) &&
-      (filters.country !== "all" ? app.country === filters.country : true) &&
       (filters.search
-        ? app.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-          app.id.toLowerCase().includes(filters.search.toLowerCase())
+        ? (app.fullName || "").toLowerCase().includes(filters.search.toLowerCase()) ||
+          (app._id || "").toLowerCase().includes(filters.search.toLowerCase())
         : true)
     );
   });
+
+  if (loading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="space-y-6"
+      >
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-slate-200 rounded w-1/4"></div>
+          <div className="h-12 bg-slate-200 rounded"></div>
+          <div className="h-64 bg-slate-200 rounded"></div>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -129,12 +166,6 @@ const ApplicationsView = () => {
       transition={{ duration: 0.5 }}
       className="space-y-6"
     >
-      {/* <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-slate-800">Applications</h1>
-        <Button className="bg-slate-800 hover:bg-slate-900">
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Application
-        </Button>
-      </div> */}
       <div className="flex items-center justify-between border-b pb-4">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">
@@ -172,33 +203,15 @@ const ApplicationsView = () => {
             <SelectItem value="all">All Statuses</SelectItem>
             {Object.keys(statusColors).map((status) => (
               <SelectItem key={status} value={status}>
-                {status}
+                {status.replace('-', ' ').toUpperCase()}
               </SelectItem>
             ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={filters.country}
-          onValueChange={(country) => setFilters({ ...filters, country })}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by country..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Countries</SelectItem>
-            {[...new Set(mockApplications.map((a) => a.country))].map(
-              (country) => (
-                <SelectItem key={country} value={country}>
-                  {country}
-                </SelectItem>
-              ),
-            )}
           </SelectContent>
         </Select>
         <Button
           variant="ghost"
           onClick={() =>
-            setFilters({ status: "all", country: "all", search: "" })
+            setFilters({ status: "all", search: "" })
           }
         >
           Clear
@@ -241,44 +254,46 @@ const ApplicationsView = () => {
 
               {filteredApplications.map((app) => (
                 <tr
-                  key={app.id}
+                  key={app._id}
                   className="bg-white hover:bg-slate-50 transition-colors"
                 >
                   <td className="px-6 py-4 font-medium text-slate-900">
-                    {app.id}
+                    {app._id?.slice(-4).toUpperCase() || "N/A"}
                   </td>
-                  <td className="px-6 py-4">{app.name}</td>
-                  <td className="px-6 py-4">{app.country}</td>
+                  <td className="px-6 py-4">{app.fullName || "Unknown"}</td>
+                  <td className="px-6 py-4">{app.country || "N/A"}</td>
                   <td className="px-6 py-4">
                     <Select
-                      value={app.status}
+                      value={app.status || "draft"}
                       onValueChange={(newStatus) =>
-                        handleStatusChange(app.id, newStatus)
+                        handleStatusChange(app._id, newStatus)
                       }
                     >
                       <SelectTrigger
-                        className={`w-[150px] h-8 text-xs font-semibold border ${statusColors[app.status]}`}
+                        className={`w-[150px] h-8 text-xs font-semibold border ${statusColors[app.status] || statusColors.draft}`}
                       >
                         <SelectValue placeholder="Set status" />
                       </SelectTrigger>
                       <SelectContent>
                         {Object.keys(statusColors).map((status) => (
                           <SelectItem key={status} value={status}>
-                            {status}
+                            {status.replace('-', ' ').toUpperCase()}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </td>
-                  <td className="px-6 py-4">{app.date}</td>
+                  <td className="px-6 py-4">
+                    {new Date(app.createdAt).toLocaleDateString()}
+                  </td>
                   <td className="px-6 py-4 text-center">
                     <Button
                       variant="outline"
                       size="sm"
                       className="hover:bg-slate-100"
-                      onClick={() => setSelectedApplication(app)}
+                      onClick={() => openApplication(app)}
                     >
-                      Manage
+                      View
                     </Button>
                   </td>
                 </tr>
@@ -292,24 +307,56 @@ const ApplicationsView = () => {
           application={selectedApplication}
           isOpen={!!selectedApplication}
           onClose={() => setSelectedApplication(null)}
+          onApplicationUpdated={syncSelectedApplication}
         />
       )}
     </motion.div>
   );
 };
 
-const ApplicationDetailsModal = ({ application, isOpen, onClose }) => {
+const ApplicationDetailsModal = ({ application, isOpen, onClose, onApplicationUpdated }) => {
   const [message, setMessage] = useState("");
   const [note, setNote] = useState(application.notes || "");
+  const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
+  const submittedDocuments = buildSubmittedDocuments(application);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!message.trim()) return;
-    toast({
-      title: "Message Sent",
-      description: `Message sent to ${application.name}.`,
-    });
-    setMessage("");
+
+    let authUser = null;
+    try {
+      authUser = JSON.parse(localStorage.getItem("authUser") || "null");
+    } catch {
+      authUser = null;
+    }
+
+    try {
+      setIsSending(true);
+      const response = await sendApplicationMessage(application._id, {
+        senderRole: "admin",
+        senderName: authUser?.fullName || authUser?.phone || "Admin",
+        text: message.trim(),
+      });
+
+      if (response?.application) {
+        onApplicationUpdated(response.application);
+      }
+
+      toast({
+        title: "Message Sent",
+        description: `Message sent to ${application.fullName || "applicant"}.`,
+      });
+      setMessage("");
+    } catch (error) {
+      toast({
+        title: "Failed to send message",
+        description: error?.response?.data?.message || "Could not send message.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handleSaveNote = () => {
@@ -331,15 +378,15 @@ const ApplicationDetailsModal = ({ application, isOpen, onClose }) => {
       <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle className="text-slate-800">
-            Manage Application: {application.name} ({application.id})
+            Application Details: {application.fullName || "Unknown Applicant"} ({application._id?.slice(-4) || "N/A"})
           </DialogTitle>
         </DialogHeader>
         <div className="py-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1 space-y-6">
             <h3 className="font-semibold text-slate-800">Uploaded Documents</h3>
             <div className="space-y-3">
-              {application.documents.length > 0 ? (
-                application.documents.map((doc, index) => (
+              {submittedDocuments.length > 0 ? (
+                submittedDocuments.map((doc, index) => (
                   <div
                     key={index}
                     className="flex items-center justify-between p-3 bg-slate-50 border rounded-lg hover:bg-slate-100 transition"
@@ -347,16 +394,15 @@ const ApplicationDetailsModal = ({ application, isOpen, onClose }) => {
                     <div className="flex items-center space-x-3">
                       <FileText className="w-5 h-5 text-slate-500" />
                       <span className="font-medium text-slate-700">
-                        {doc.name}
+                        {doc.label}
                       </span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <Button variant="ghost" size="icon">
-                        <Eye className="w-5 h-5 text-blue-600" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <Download className="w-5 h-5 text-emerald-600" />
-                      </Button>
+                      <a href={doc.url} target="_blank" rel="noreferrer">
+                        <Button variant="ghost" size="icon" title="Open document">
+                          <Eye className="w-5 h-5 text-blue-600" />
+                        </Button>
+                      </a>
                     </div>
                   </div>
                 ))
@@ -365,15 +411,31 @@ const ApplicationDetailsModal = ({ application, isOpen, onClose }) => {
                   No documents uploaded.
                 </p>
               )}
-              <Button variant="outline" className="w-full">
-                <Upload className="mr-2 h-4 w-4" /> Upload Document
-              </Button>
             </div>
           </div>
           <div className="lg:col-span-1 space-y-6">
+            <h3 className="font-semibold text-slate-800">Submitted Details</h3>
+            <div className="space-y-3 rounded-lg border bg-slate-50 p-4 text-sm text-slate-700">
+              <div><span className="font-semibold">Full Name:</span> {application.fullName || "N/A"}</div>
+              <div><span className="font-semibold">Phone:</span> {application.phone || "N/A"}</div>
+              <div><span className="font-semibold">Email:</span> {application.email || "N/A"}</div>
+              <div><span className="font-semibold">Country:</span> {application.country || "N/A"}</div>
+              <div><span className="font-semibold">Status:</span> {(application.status || "draft").replace("-", " ")}</div>
+              <div><span className="font-semibold">Age:</span> {application.age ?? "N/A"}</div>
+              <div><span className="font-semibold">Marital Status:</span> {application.maritalStatus || "N/A"}</div>
+              <div><span className="font-semibold">Occupation:</span> {application.occupation || "N/A"}</div>
+              <div><span className="font-semibold">Sponsorship:</span> {application.sponsorship || "N/A"}</div>
+              <div>
+                <span className="font-semibold">Travel Dates:</span>{" "}
+                {application.travelDates?.from ? new Date(application.travelDates.from).toLocaleDateString() : "N/A"}
+                {" - "}
+                {application.travelDates?.to ? new Date(application.travelDates.to).toLocaleDateString() : "N/A"}
+              </div>
+            </div>
+
             <h3 className="font-semibold text-slate-800">Internal Notes</h3>
             <textarea
-              rows="6"
+              rows="4"
               placeholder="Add internal notes for this application..."
               value={note}
               onChange={(e) => setNote(e.target.value)}
@@ -391,13 +453,19 @@ const ApplicationDetailsModal = ({ application, isOpen, onClose }) => {
               Communication with Applicant
             </h3>
             <div className="bg-slate-50 border p-4 rounded-lg h-48 overflow-y-auto mb-4 space-y-2">
-              {application.messages.length > 0 ? (
+              {application.messages && application.messages.length > 0 ? (
                 application.messages.map((msg, index) => (
-                  <div key={index} className="text-sm text-slate-600 mb-2">
-                    <span className="font-bold text-emerald-700 capitalize">
-                      {msg.sender}:
+                  <div
+                    key={index}
+                    className={`text-sm mb-2 p-2 rounded ${msg.senderRole === "admin" ? "bg-blue-100 text-blue-900" : "bg-white text-slate-700"}`}
+                  >
+                    <span className="font-bold capitalize">
+                      {msg.senderName || msg.senderRole}:
                     </span>{" "}
                     {msg.text}
+                    <div className="text-[11px] text-slate-500 mt-1">
+                      {msg.createdAt ? new Date(msg.createdAt).toLocaleString() : ""}
+                    </div>
                   </div>
                 ))
               ) : (
@@ -418,6 +486,7 @@ const ApplicationDetailsModal = ({ application, isOpen, onClose }) => {
                 variant="ghost"
                 className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
                 onClick={handleSendMessage}
+                disabled={isSending}
               >
                 <Send className="w-4 h-4" />
               </Button>

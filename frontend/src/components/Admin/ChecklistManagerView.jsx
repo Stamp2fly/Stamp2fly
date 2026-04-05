@@ -7,28 +7,50 @@ import { PlusCircle, Trash2, Save, ListChecks, ToggleLeft, ToggleRight, FileType
 import { useToast } from '@/components/ui/use-toast';
 import { useVisa } from '@/contexts/VisaContext';
 import { APPLICANT_TYPE_OPTIONS } from '@/constants/applicantTypes.js';
+import { getChecklistByCountry, saveChecklist } from '@/api/adminApi';
 
 const ChecklistManagerView = () => {
-  const { visaData, updateVisaData } = useVisa();
+  const { visaData, refreshVisaData } = useVisa();
   const [selectedCountry, setSelectedCountry] = useState(Object.keys(visaData)[0] || '');
   const [selectedCategory, setSelectedCategory] = useState('base');
+  const [checklistByCategory, setChecklistByCategory] = useState({});
   const [checklist, setChecklist] = useState([]);
   const [newItemName, setNewItemName] = useState('');
   const [newItemDesc, setNewItemDesc] = useState('');
   const { toast } = useToast();
 
   const checklistCategories = [
-    { value: 'base', label: 'Base Documents (for all)' },
+    // { value: 'base', label: 'Base Documents (for all)' },
     ...APPLICANT_TYPE_OPTIONS,
   ];
 
   useEffect(() => {
-    if (selectedCountry && visaData[selectedCountry]) {
-      setChecklist(visaData[selectedCountry].checklist?.[selectedCategory] || []);
-    } else {
-      setChecklist([]);
-    }
-  }, [selectedCountry, selectedCategory, visaData]);
+    const loadCountryChecklist = async () => {
+      if (!selectedCountry || !visaData[selectedCountry]?._id) {
+        setChecklistByCategory({});
+        setChecklist([]);
+        return;
+      }
+
+      try {
+        const response = await getChecklistByCountry(visaData[selectedCountry]._id);
+        const nextChecklistMap = response?.checklist || {};
+        setChecklistByCategory(nextChecklistMap);
+      } catch (error) {
+        toast({
+          title: 'Failed to load checklist',
+          description: error?.response?.data?.message || 'Could not load checklist for this country.',
+          variant: 'destructive',
+        });
+      }
+    };
+
+    loadCountryChecklist();
+  }, [selectedCountry, visaData, toast]);
+
+  useEffect(() => {
+    setChecklist(checklistByCategory[selectedCategory] || []);
+  }, [selectedCategory, checklistByCategory]);
 
   const handleAddItem = () => {
     if (!newItemName.trim()) return;
@@ -46,23 +68,38 @@ const ChecklistManagerView = () => {
     setChecklist(checklist.map(item => item.key === key ? { ...item, [field]: value } : item));
   };
 
-  const handleSave = () => {
-    if (!selectedCountry) {
-        toast({ title: "No Country Selected", description: "Please select a country to save the checklist.", variant: "destructive" });
-        return;
+  const handleSave = async () => {
+    if (!selectedCountry || !visaData[selectedCountry]?._id) {
+      toast({ title: "No Country Selected", description: "Please select a country to save the checklist.", variant: "destructive" });
+      return;
     }
-    const updatedVisaData = {
-      ...visaData,
-      [selectedCountry]: {
-        ...visaData[selectedCountry],
-        checklist: {
-          ...visaData[selectedCountry]?.checklist,
-          [selectedCategory]: checklist,
-        }
-      },
-    };
-    updateVisaData(updatedVisaData);
-    toast({ title: "Checklist Saved!", description: `Checklist for ${selectedCountry} (${selectedCategory}) has been saved.`, className: "bg-green-500 text-white" });
+
+    try {
+      await saveChecklist({
+        country: visaData[selectedCountry]._id,
+        category: selectedCategory,
+        items: checklist,
+      });
+
+      setChecklistByCategory((prev) => ({
+        ...prev,
+        [selectedCategory]: checklist,
+      }));
+
+      await refreshVisaData();
+
+      toast({
+        title: "Checklist Saved!",
+        description: `Checklist for ${selectedCountry} (${selectedCategory}) is now live.`,
+        className: "bg-green-500 text-white",
+      });
+    } catch (error) {
+      toast({
+        title: "Save failed",
+        description: error?.response?.data?.message || 'Could not save checklist.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } };
@@ -72,8 +109,8 @@ const ChecklistManagerView = () => {
     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-8">
       <motion.div variants={itemVariants} className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-800">Checklist Manager</h1>
-        <Button onClick={handleSave} className="bg-emerald-600 hover:bg-emerald-700">
-          <Save className="mr-2 h-4 w-4" /> Save Checklist
+        <Button onClick={handleSave} className="bg-slate-800 hover:bg-slate-900 text-white">
+          <Save /> Save Checklist
         </Button>
       </motion.div>
 

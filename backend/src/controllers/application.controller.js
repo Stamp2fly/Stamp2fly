@@ -22,9 +22,27 @@ export const createApplication = async (req, res) => {
 // GET ALL (USER)
 export const getUserApplications = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const { userId, phone, email } = req.query;
+    const filter = {};
+    const orClauses = [];
 
-    const applications = await Application.find({ userId }).sort({
+    if (userId) {
+      orClauses.push({ userId });
+    }
+
+    if (phone) {
+      orClauses.push({ phone });
+    }
+
+    if (email) {
+      orClauses.push({ email });
+    }
+
+    if (orClauses.length > 0) {
+      filter.$or = orClauses;
+    }
+
+    const applications = await Application.find(filter).sort({
       createdAt: -1,
     });
 
@@ -176,6 +194,8 @@ export const submitApplication = async (req, res) => {
       return res.status(404).json({ message: "Application not found" });
     }
 
+    const normalizedOccupation = application.occupation === "employed" ? "salaried" : application.occupation;
+
     // STEP 1: get checklist
     const baseChecklist = await Checklist.findOne({
       country: application.country,
@@ -184,7 +204,7 @@ export const submitApplication = async (req, res) => {
 
     const specificChecklist = await Checklist.findOne({
       country: application.country,
-      category: application.occupation,
+      category: normalizedOccupation,
     });
 
     const requiredItems = [
@@ -275,5 +295,42 @@ export const uploadDocuments = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+export const addApplicationMessage = async (req, res) => {
+  try {
+    const appId = req.params.id;
+    const { senderRole, senderName, text } = req.body;
+
+    if (!senderRole || !text) {
+      return res.status(400).json({ message: "senderRole and text are required" });
+    }
+
+    if (!["user", "admin"].includes(senderRole)) {
+      return res.status(400).json({ message: "Invalid senderRole" });
+    }
+
+    const application = await Application.findById(appId);
+
+    if (!application) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    application.messages.push({
+      senderRole,
+      senderName: senderName || "",
+      text,
+      createdAt: new Date(),
+    });
+
+    await application.save();
+
+    return res.status(201).json({
+      message: "Message added",
+      application,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
   }
 };

@@ -30,6 +30,7 @@ import {
 import { useVisa } from "@/contexts/VisaContext";
 import { useNavigate } from "react-router-dom";
 import { APPLICANT_TYPE_OPTIONS } from "@/constants/applicantTypes.js";
+import { createCountryRecord, updateCountryRecord } from "@/api/adminApi";
 
 const normalizeOption = (option = {}) => ({
   ...option,
@@ -58,7 +59,7 @@ const buildDefaultChecklist = () =>
   );
 
 const VisaManagementView = () => {
-  const { visaData, updateVisaData } = useVisa();
+  const { visaData, updateVisaData, refreshVisaData } = useVisa();
   const [localVisaData, setLocalVisaData] = useState(() =>
     normalizeVisaData(visaData),
   );
@@ -77,13 +78,59 @@ const VisaManagementView = () => {
     }
   }, [visaData, selectedCountry]);
 
-  const handleSave = () => {
-    updateVisaData(normalizeVisaData(localVisaData));
-    toast({
-      title: "Visa Info Saved!",
-      description: `Changes for ${selectedCountry} have been successfully saved.`,
-      className: "bg-green-500 text-white",
-    });
+  const handleSave = async () => {
+    if (!selectedCountry) {
+      return;
+    }
+
+    try {
+      const countryData = localVisaData[selectedCountry] || {};
+
+      const payload = {
+        countryName: selectedCountry,
+        flag: countryData.flag || "",
+        isoCode: countryData.isoCode || "",
+        officialURL: countryData.source || "",
+        showOnHomepage: Boolean(countryData.isRecent),
+        visaOptions: (countryData.options || []).map((option, index) => ({
+          id: option.id || index + 1,
+          name: option.name || "Visa Option",
+          visaType: option.name || "Visa Option",
+          entry: option.entry || "",
+          entryType: option.entry || "",
+          stayDuration: option.duration || "",
+          duration: option.duration || "",
+          validity: option.validity || "",
+          processingTime: option.processingTime || "",
+          price: Number(option.price) || 0,
+          originalPrice: option.originalPrice,
+          alertMessage: option.alertMessage || "",
+          pricingNote: option.alertMessage || "",
+          isCombo: Boolean(option.combo),
+          combo: Boolean(option.combo),
+          fees: option.fees || {},
+        })),
+      };
+
+      if (countryData._id) {
+        await updateCountryRecord(countryData._id, payload);
+      } else {
+        await createCountryRecord(payload);
+      }
+
+      await refreshVisaData();
+      toast({
+        title: "Visa Info Saved!",
+        description: `Changes for ${selectedCountry} are now live on the site.`,
+        className: "bg-green-500 text-white",
+      });
+    } catch (error) {
+      toast({
+        title: "Save failed",
+        description: error?.response?.data?.message || "Could not save country details.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCountryFieldChange = (field, value) => {
@@ -142,7 +189,7 @@ const VisaManagementView = () => {
     );
   };
 
-  const handleAddCountry = () => {
+  const handleAddCountry = async () => {
     if (!newCountryName.trim()) {
       toast({
         title: "Error",
@@ -151,27 +198,34 @@ const VisaManagementView = () => {
       });
       return;
     }
-    const updatedVisaData = {
-      ...localVisaData,
-      [newCountryName]: {
-        options: [],
-        checklist: buildDefaultChecklist(),
-        faq: [],
+
+    try {
+      const trimmedName = newCountryName.trim();
+      await createCountryRecord({
+        countryName: trimmedName,
         flag: "",
         isoCode: "",
-        source: "",
-        isRecent: false,
-      },
-    };
-    updateVisaData(updatedVisaData);
-    setSelectedCountry(newCountryName);
-    setNewCountryName("");
-    setIsAddCountryModalOpen(false);
-    toast({
-      title: "Country Added!",
-      description: `${newCountryName} has been added.`,
-      className: "bg-green-500 text-white",
-    });
+        officialURL: "",
+        showOnHomepage: false,
+        visaOptions: [],
+      });
+
+      await refreshVisaData();
+      setSelectedCountry(trimmedName);
+      setNewCountryName("");
+      setIsAddCountryModalOpen(false);
+      toast({
+        title: "Country Added!",
+        description: `${trimmedName} has been added and published.`,
+        className: "bg-green-500 text-white",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to add country",
+        description: error?.response?.data?.message || "Could not create country.",
+        variant: "destructive",
+      });
+    }
   };
 
   const currentData = localVisaData[selectedCountry] || {
@@ -210,7 +264,7 @@ const VisaManagementView = () => {
 
           <Button
             onClick={handleSave}
-            className="bg-slate-400 hover:bg-slate-500"
+            className="bg-slate-800 hover:bg-slate-900 text-white"
             disabled={!selectedCountry}
           >
             <Save className="mr-2 h-4 w-4" />

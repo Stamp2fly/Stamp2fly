@@ -1,88 +1,173 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, Trash2, Save, User, Shield } from 'lucide-react';
+import { PlusCircle, Trash2, Save, User, Shield, Search } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-
-const mockUsers = [
-  { id: 1, name: 'Admin User', email: 'admin@stamp2fly.com', role: 'Super Admin' },
-  { id: 2, name: 'Alice', email: 'alice@stamp2fly.com', role: 'Support Agent' },
-  { id: 3, name: 'Bob', email: 'bob@stamp2fly.com', role: 'Document Processor' },
-  { id: 4, name: 'Charlie', email: 'charlie@stamp2fly.com', role: 'Content Editor' },
-];
-
-const roles = ['Super Admin', 'Support Agent', 'Document Processor', 'Content Editor'];
+import { getTeamMembers } from '@/api/adminApi';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 const RolesPermissionsView = () => {
-  const [users, setUsers] = useState(mockUsers);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
 
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      try {
+        setLoading(true);
+        const data = await getTeamMembers();
+        setTeamMembers(data || []);
+      } catch (error) {
+        toast({
+          title: 'Failed to load team members',
+          description: error?.response?.data?.message || 'Could not load team members.',
+          variant: 'destructive',
+        });
+        console.error('Team members fetch error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTeamMembers();
+  }, [toast]);
+
   const handleAddUser = () => {
-    toast({ title: "Feature in progress", description: "Adding new admin users is not yet implemented." });
+    toast({ 
+      title: "Feature not enabled", 
+      description: "Use the User Management page to create team members.",
+      variant: 'info'
+    });
   };
 
-  const handleRoleChange = (userId, newRole) => {
-    setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+  const handleDeleteUser = (userId, userName) => {
+    toast({
+      title: "Delete not implemented",
+      description: `Deleting ${userName} is not yet implemented.`,
+    });
   };
-  
+
   const handleSave = () => {
-      toast({ title: "Roles Saved!", description: "User roles have been updated.", className: "bg-green-500 text-white"});
+    toast({ 
+      title: "Roles Saved!", 
+      description: "Team member roles have been confirmed.",
+      className: "bg-green-500 text-white"
+    });
   };
+
+  const filteredTeamMembers = teamMembers.filter(member =>
+    (member.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (member.email || member.phone || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="space-y-8">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-slate-200 rounded w-1/4"></div>
+          <div className="h-12 bg-slate-200 rounded"></div>
+          <div className="h-64 bg-slate-200 rounded"></div>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="space-y-8">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-800">Roles & Permissions</h1>
         <div className="flex space-x-4">
-            <Button variant="outline" onClick={handleAddUser}>
+            {/* <Button variant="outline" onClick={handleAddUser}>
               <PlusCircle className="mr-2 h-4 w-4" /> Add Admin User
-            </Button>
-            <Button onClick={handleSave} className="bg-emerald-600 hover:bg-emerald-700">
+            </Button> */}
+            <Button onClick={handleSave} className="bg-slate-800 hover:bg-slate-900 text-white">
               <Save className="mr-2 h-4 w-4" /> Save Changes
             </Button>
         </div>
       </div>
-      
+
+      <div className="bg-white p-4 rounded-xl shadow-sm">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+          <Input 
+            placeholder="Search team members..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      </div>
+
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left text-gray-500">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-4">User</th>
+                <th scope="col" className="px-6 py-4">Team Member</th>
                 <th scope="col" className="px-6 py-4">Role</th>
                 <th scope="col" className="px-6 py-4 text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {users.map(user => (
-                <tr key={user.id} className="bg-white border-b hover:bg-gray-50">
+              {filteredTeamMembers.length === 0 && (
+                <tr>
+                  <td colSpan="3" className="text-center py-10 text-slate-500">
+                    No team members found
+                  </td>
+                </tr>
+              )}
+              {filteredTeamMembers.map(member => (
+                <tr key={member._id} className="bg-white border-b hover:bg-gray-50">
                   <td className="px-6 py-4">
-                    <div className="font-bold">{user.name}</div>
-                    <div className="text-sm text-gray-500">{user.email}</div>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600">
+                        {(member.fullName || member.phone || 'U').charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="font-bold text-gray-900">{member.fullName || 'Team Member'}</div>
+                        <div className="text-sm text-gray-500">{member.email || member.phone}</div>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-6 py-4">
-                    <Select value={user.role} onValueChange={(val) => handleRoleChange(user.id, val)}>
-                      <SelectTrigger className="w-[200px] h-9">
-                        <div className="flex items-center">
-                            <Shield className="mr-2 h-4 w-4 text-gray-500"/>
-                            <SelectValue/>
-                        </div>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {roles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center space-x-2">
+                      <Shield className="h-4 w-4 text-gray-500" />
+                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
+                        Team
+                      </span>
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <Button variant="ghost" size="icon"><Trash2 className="h-5 w-5 text-red-500" /></Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => handleDeleteUser(member._id, member.fullName)}
+                    >
+                      <Trash2 className="h-5 w-5 text-red-500" />
+                    </Button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h3 className="font-semibold text-blue-900 mb-2">Team Role Information</h3>
+        <p className="text-sm text-blue-800">
+          All team members have the <strong>Team</strong> role, which allows them to manage applications, visit records, user data, and visa-related content. They cannot access role management or create other team members.
+        </p>
       </div>
     </motion.div>
   );

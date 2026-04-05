@@ -1,4 +1,5 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import { getAllChecklists, getCountries, getFaqs } from '@/api/adminApi';
 
 const initialVisaData = {
   'United Arab Emirates': {
@@ -168,9 +169,102 @@ export const VisaProvider = ({ children }) => {
     }
   });
 
+  const buildVisaDataFromApi = useCallback(async () => {
+    const [countries, checklists, faqs] = await Promise.all([
+      getCountries(),
+      getAllChecklists(),
+      getFaqs(),
+    ]);
+
+    const countryIdToName = new Map();
+
+    const mapped = (countries || []).reduce((accumulator, country) => {
+      const countryName = country.countryName;
+      if (!countryName) {
+        return accumulator;
+      }
+
+      countryIdToName.set(String(country._id), countryName);
+
+      accumulator[countryName] = {
+        _id: country._id,
+        isoCode: country.isoCode || '',
+        flag: country.flag || '',
+        source: country.officialURL || '',
+        isRecent: Boolean(country.showOnHomepage),
+        options: (country.visaOptions || []).map((option, index) => ({
+          id: option.id || index + 1,
+          name: option.name || option.visaType || 'Visa Option',
+          entry: option.entry || option.entryType || '',
+          validity: option.validity || '',
+          duration: option.duration || option.stayDuration || '',
+          processingTime: option.processingTime || '',
+          price: Number(option.price) || 0,
+          originalPrice: option.originalPrice,
+          combo: Boolean(option.combo ?? option.isCombo),
+          alertMessage: option.alertMessage || option.pricingNote || '',
+          fees: option.fees || {},
+        })),
+        checklist: { base: [] },
+        faq: [],
+      };
+
+      return accumulator;
+    }, {});
+
+    (checklists || []).forEach((entry) => {
+      const countryName = entry.countryName || countryIdToName.get(String(entry.countryId));
+      if (!countryName || !mapped[countryName]) {
+        return;
+      }
+
+      const category = entry.category || 'base';
+      mapped[countryName].checklist = {
+        ...(mapped[countryName].checklist || { base: [] }),
+        [category]: entry.items || [],
+      };
+    });
+
+    (faqs || []).forEach((item) => {
+      if (item.isGlobal || !item.countryId) {
+        return;
+      }
+
+      const countryName = countryIdToName.get(String(item.countryId));
+      if (!countryName || !mapped[countryName]) {
+        return;
+      }
+
+      mapped[countryName].faq = [
+        ...(mapped[countryName].faq || []),
+        {
+          q: item.question,
+          a: item.answer,
+        },
+      ];
+    });
+
+    return mapped;
+  }, []);
+
+  const refreshVisaData = useCallback(async () => {
+    try {
+      const nextData = await buildVisaDataFromApi();
+      if (Object.keys(nextData || {}).length > 0) {
+        setVisaData(nextData);
+      }
+    } catch (error) {
+      console.error('Failed to fetch visa data from API', error);
+    }
+  }, [buildVisaDataFromApi]);
+
   useEffect(() => {
     localStorage.setItem('visaData', JSON.stringify(visaData));
   }, [visaData]);
+
+  useEffect(() => {
+    refreshVisaData();
+  }, [refreshVisaData]);
 
   const updateVisaData = (newData) => {
     setVisaData(newData);
@@ -179,6 +273,7 @@ export const VisaProvider = ({ children }) => {
   const value = {
     visaData,
     updateVisaData,
+    refreshVisaData,
   };
 
   return <VisaContext.Provider value={value}>{children}</VisaContext.Provider>;

@@ -1,32 +1,28 @@
 import mongoose from "mongoose";
 
-const visaOptionSchema = new mongoose.Schema({
-  visaType: {
-    type: String,
-    enum: ["e-visa", "visa-on-arrival", "visa-required", "visa-free"],
+const visaOptionSchema = new mongoose.Schema(
+  {
+    visaType: String,
+    entryType: String,
+    price: Number,
+    stayDuration: String,
+    validity: String,
+    processingTime: String,
+    originalPrice: Number,
+    abscondedPrice: Number,
+    pricingNote: String,
+    alertMessage: String,
+    currency: String,
+    fees: {
+      absconding: String,
+    },
+    isCombo: {
+      type: Boolean,
+      default: false,
+    },
   },
-
-  entryType: {
-    type: String,
-    enum: ["single-entry", "multiple-entry"],
-  },
-
-  price: Number,
-
-  stayDuration: String,
-  validity: String,
-  processingTime: String,
-
-  originalPrice: Number,
-  abscondedPrice: Number,
-
-  pricingNote: String,
-
-  isCombo: {
-    type: Boolean,
-    default: false,
-  },
-});
+  { _id: false, strict: false }
+);
 
 const countrySchema = new mongoose.Schema(
   {

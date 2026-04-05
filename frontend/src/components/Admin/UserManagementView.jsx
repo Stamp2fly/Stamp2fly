@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Eye, Edit, Trash2, KeyRound, Search, PlusCircle } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Eye, Edit, Trash2, KeyRound, Search, PlusCircle } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Dialog,
   DialogContent,
@@ -12,34 +12,52 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-
-const mockUsers = [
-  { id: 1, name: 'John Doe', email: 'john.d@example.com', joinDate: '2025-07-01', appCount: 1, status: 'Active' },
-  { id: 2, name: 'Jane Smith', email: 'jane.s@example.com', joinDate: '2025-06-28', appCount: 2, status: 'Active' },
-  { id: 3, name: 'Peter Jones', email: 'peter.j@example.com', joinDate: '2025-07-02', appCount: 0, status: 'Inactive' },
-];
+} from "@/components/ui/select";
+import { getNormalUsers, createAdminUser } from "@/api/adminApi";
 
 const UserManagementView = () => {
-  const authUser = JSON.parse(localStorage.getItem('authUser') || 'null');
-  const isSuperAdmin = authUser?.role === 'super_admin';
-  const [users, setUsers] = useState(mockUsers);
-  const [searchTerm, setSearchTerm] = useState('');
+  const authUser = JSON.parse(localStorage.getItem("authUser") || "null");
+  const isSuperAdmin = authUser?.role === "super_admin";
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [teamForm, setTeamForm] = useState({
-    fullName: '',
-    phone: '',
-    email: '',
-    role: 'team',
+    fullName: "",
+    phone: "",
+    email: "",
+    role: "team",
   });
   const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const data = await getNormalUsers();
+        setUsers(data || []);
+      } catch (error) {
+        toast({
+          title: "Failed to load users",
+          description:
+            error?.response?.data?.message || "Could not load user list.",
+          variant: "destructive",
+        });
+        console.error("Users fetch error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, [toast]);
 
   const handleAction = (action, userName) => {
     toast({
@@ -48,46 +66,70 @@ const UserManagementView = () => {
     });
   };
 
-  const filteredUsers = users.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = users.filter(
+    (user) =>
+      (user.fullName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.email || user.phone || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
   );
 
-  const handleCreateTeam = (e) => {
+  const handleCreateTeam = async (e) => {
     e.preventDefault();
 
-    if (!isSuperAdmin) {
+    if (!isSuperAdmin || teamForm.role !== "team") {
       toast({
-        title: 'Access denied',
-        description: 'Only super admin can create team accounts.',
-        variant: 'destructive',
+        title: "Access denied",
+        description: "Only super admin can create team accounts.",
+        variant: "destructive",
       });
       return;
     }
 
-    const newMember = {
-      id: Date.now(),
-      name: teamForm.fullName,
-      email: teamForm.email || `${teamForm.phone}@team.local`,
-      joinDate: new Date().toISOString().slice(0, 10),
-      appCount: 0,
-      status: 'Active',
-      role: teamForm.role,
-    };
+    try {
+      const newTeamMember = await createAdminUser({
+        fullName: teamForm.fullName,
+        phone: teamForm.phone,
+        email: teamForm.email,
+        role: "team",
+      });
 
-    setUsers((prev) => [newMember, ...prev]);
-    setTeamForm({ fullName: '', phone: '', email: '', role: 'team' });
-    setIsDialogOpen(false);
+      toast({
+        title: "Team member created",
+        description: `${newTeamMember.fullName} has been added as team member.`,
+        className: "bg-emerald-600 text-white",
+      });
 
-    toast({
-      title: 'Team member created',
-      description: `${newMember.name} has been added as ${newMember.role.replace('_', ' ')}.`,
-      className: 'bg-emerald-600 text-white',
-    });
+      setTeamForm({ fullName: "", phone: "", email: "", role: "team" });
+      setIsDialogOpen(false);
+    } catch (error) {
+      toast({
+        title: "Failed to create team member",
+        description: error?.response?.data?.message || "An error occurred.",
+        variant: "destructive",
+      });
+    }
   };
 
+  if (loading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="space-y-6"
+      >
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-slate-200 rounded w-1/4"></div>
+          <div className="h-12 bg-slate-200 rounded"></div>
+          <div className="h-64 bg-slate-200 rounded"></div>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -98,7 +140,7 @@ const UserManagementView = () => {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           {isSuperAdmin && (
             <DialogTrigger asChild>
-              <Button className="bg-slate-800 hover:bg-slate-900">
+              <Button className="bg-slate-800 hover:bg-slate-900 text-white">
                 <PlusCircle className="mr-2 h-4 w-4" /> Add Team Member
               </Button>
             </DialogTrigger>
@@ -107,30 +149,42 @@ const UserManagementView = () => {
             <DialogHeader>
               <DialogTitle>Create Team Account</DialogTitle>
               <DialogDescription>
-                Super admin can add team members here. The team member can then login using phone + OTP.
+                Super admin can add team members here. The team member can then
+                login using phone + OTP.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleCreateTeam} className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Full Name</label>
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Full Name
+                </label>
                 <Input
                   value={teamForm.fullName}
-                  onChange={(e) => setTeamForm((prev) => ({ ...prev, fullName: e.target.value }))}
+                  onChange={(e) =>
+                    setTeamForm((prev) => ({
+                      ...prev,
+                      fullName: e.target.value,
+                    }))
+                  }
                   placeholder="Team member full name"
                   required
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Phone</label>
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Phone
+                </label>
                 <Input
                   type="tel"
                   value={teamForm.phone}
-                  onChange={(e) => setTeamForm((prev) => ({ ...prev, phone: e.target.value }))}
+                  onChange={(e) =>
+                    setTeamForm((prev) => ({ ...prev, phone: e.target.value }))
+                  }
                   placeholder="Phone number"
                   required
                 />
               </div>
-              <div>
+              {/* <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">Email (optional)</label>
                 <Input
                   type="email"
@@ -138,10 +192,17 @@ const UserManagementView = () => {
                   onChange={(e) => setTeamForm((prev) => ({ ...prev, email: e.target.value }))}
                   placeholder="Email address"
                 />
-              </div>
+              </div> */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Role</label>
-                <Select value={teamForm.role} onValueChange={(value) => setTeamForm((prev) => ({ ...prev, role: value }))}>
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Role
+                </label>
+                <Select
+                  value={teamForm.role}
+                  onValueChange={(value) =>
+                    setTeamForm((prev) => ({ ...prev, role: value }))
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
@@ -151,18 +212,20 @@ const UserManagementView = () => {
                 </Select>
               </div>
               <DialogFooter>
-                <Button type="submit" className="w-full sm:w-auto">Create Team Member</Button>
+                <Button type="submit" className="w-full sm:w-auto">
+                  Create Team Member
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
       </div>
-      
+
       <div className="bg-white p-4 rounded-xl shadow-sm">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-          <Input 
-            placeholder="Search users by name or email..." 
+          <Input
+            placeholder="Search users by name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -175,38 +238,89 @@ const UserManagementView = () => {
           <table className="w-full text-sm text-left text-slate-500">
             <thead className="text-xs text-slate-700 uppercase bg-slate-50">
               <tr>
-                <th scope="col" className="px-6 py-4 font-medium">User</th>
-                <th scope="col" className="px-6 py-4 font-medium">Joined Date</th>
-                <th scope="col" className="px-6 py-4 font-medium">Applications</th>
-                <th scope="col" className="px-6 py-4 font-medium">Status</th>
-                <th scope="col" className="px-6 py-4 font-medium text-center">Actions</th>
+                <th scope="col" className="px-6 py-4 font-medium">
+                  User
+                </th>
+                <th scope="col" className="px-6 py-4 font-medium">
+                  Joined Date
+                </th>
+                <th scope="col" className="px-6 py-4 font-medium">
+                  Status
+                </th>
+                <th scope="col" className="px-6 py-4 font-medium text-center">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {filteredUsers.map(user => (
-                <tr key={user.id} className="bg-white hover:bg-slate-50">
+              {filteredUsers.length === 0 && (
+                <tr>
+                  <td colSpan="4" className="text-center py-10 text-slate-500">
+                    No users found
+                  </td>
+                </tr>
+              )}
+              {filteredUsers.map((user) => (
+                <tr key={user._id} className="bg-white hover:bg-slate-50">
                   <td className="px-6 py-4 font-medium text-slate-900">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600 flex-shrink-0">{user.name.charAt(0)}</div>
+                      <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600 flex-shrink-0">
+                        {(user.fullName || user.phone || "U")
+                          .charAt(0)
+                          .toUpperCase()}
+                      </div>
                       <div>
-                        <div className="font-bold">{user.name}</div>
-                        <div className="text-sm text-slate-500">{user.email}</div>
-                        {user.role && <div className="text-xs text-slate-400 uppercase">{user.role.replace('_', ' ')}</div>}
+                        <div className="font-bold">
+                          {user.fullName || "User"}
+                        </div>
+                        <div className="text-sm text-slate-500">
+                          {user.email || user.phone}
+                        </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">{user.joinDate}</td>
-                  <td className="px-6 py-4 text-center">{user.appCount}</td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${user.status === 'Active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-800'}`}>
-                      {user.status}
+                    {user.createdAt
+                      ? new Date(user.createdAt).toLocaleDateString()
+                      : "N/A"}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
+                      Active
                     </span>
                   </td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex justify-center space-x-1">
-                        <Button variant="ghost" size="icon" onClick={() => handleAction('View History', user.name)}><Eye className="h-5 w-5 text-slate-500"/></Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleAction('Reset Password', user.name)}><KeyRound className="h-5 w-5 text-slate-500"/></Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleAction('Deactivate', user.name)}><Trash2 className="h-5 w-5 text-red-500"/></Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          handleAction("View History", user.fullName || "User")
+                        }
+                      >
+                        <Eye className="h-5 w-5 text-slate-500" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          handleAction(
+                            "Reset Password",
+                            user.fullName || "User"
+                          )
+                        }
+                      >
+                        <KeyRound className="h-5 w-5 text-slate-500" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          handleAction("Deactivate", user.fullName || "User")
+                        }
+                      >
+                        <Trash2 className="h-5 w-5 text-red-500" />
+                      </Button>
                     </div>
                   </td>
                 </tr>

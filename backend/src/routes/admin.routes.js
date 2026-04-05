@@ -5,10 +5,18 @@ import {
   getAllApplications,
   updateApplicationStatus,
   createAdminUser,
-  getAllUsers
+  getAllUsers,
+  getDashboardStats,
 } from "../controllers/admin.controller.js";
 
 const router = express.Router();
+
+router.get(
+  "/dashboard-stats",
+  protect,
+  authorize("super_admin", "team"),
+  getDashboardStats
+);
 
 router.get(
   "/applications",

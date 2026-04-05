@@ -16,7 +16,7 @@ const checklistSchema = new mongoose.Schema(
     category: {
       type: String,
       enum: [
-        "base",
+        "employed",
         "salaried",
         "self-employed",
         "student",

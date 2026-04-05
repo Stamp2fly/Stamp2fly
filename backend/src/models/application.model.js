@@ -32,6 +32,11 @@ const applicationSchema = new mongoose.Schema(
 
     email: String,
 
+    country: {
+      type: String,
+      default: "",
+    },
+
     travelDates: {
       from: {
         type: Date,
@@ -45,13 +50,14 @@ const applicationSchema = new mongoose.Schema(
 
     maritalStatus: {
       type: String,
-      enum: ["single", "married"],
+      enum: ["single", "married", "divorced", "widowed"],
       // required: true,
     },
 
     occupation: {
       type: String,
       enum: [
+        "employed",
         "salaried",
         "self-employed",
         "student",
@@ -64,8 +70,36 @@ const applicationSchema = new mongoose.Schema(
 
     sponsorship: {
       type: String,
-      enum: ["self", "family", "company"],
+      enum: ["self", "family", "company", "sponsored"],
       // required: true,
+    },
+
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "authorized", "captured", "failed", "refunded"],
+      default: "pending",
+    },
+
+    paymentInfo: {
+      provider: {
+        type: String,
+        default: "dummy",
+      },
+      transactionId: {
+        type: String,
+        default: "",
+      },
+      amount: {
+        type: Number,
+        default: 0,
+      },
+      currency: {
+        type: String,
+        default: "USD",
+      },
+      paidAt: {
+        type: Date,
+      },
     },
 
     // 📄 Documents
@@ -100,6 +134,29 @@ const applicationSchema = new mongoose.Schema(
 
       documents: [String], // flexible
     },
+
+    messages: [
+      {
+        senderRole: {
+          type: String,
+          enum: ["user", "admin"],
+          required: true,
+        },
+        senderName: {
+          type: String,
+          default: "",
+        },
+        text: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );
