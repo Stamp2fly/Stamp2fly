@@ -186,7 +186,7 @@ const Footer = () => {
           <Link to="/about" className="hover:text-white transition">About</Link>
           <Link to="/contact" className="hover:text-white transition">Contact</Link>
           <Link to="/faq" className="hover:text-white transition">FAQ</Link>
-          <Link to="/admin" className="hover:text-white transition">Admin</Link>
+          {/* <Link to="/admin" className="hover:text-white transition">Admin</Link> */}
         </div>
 
         {/* Social Icons */}

@@ -13,7 +13,6 @@ import ChecklistManagerView from '@/components/Admin/ChecklistManagerView';
 import FaqManagerView from '@/components/Admin/FaqManagerView';
 import UserManagementView from '@/components/Admin/UserManagementView';
 import RolesPermissionsView from '@/components/Admin/RolesPermissionsView';
-import ContentManagerView from '@/components/Admin/ContentManagerView.jsx';
 
 const normalizeRole = (role) => String(role || '').toLowerCase().replace(/[\s-]+/g, '_');
 
@@ -74,9 +73,9 @@ const AdminDashboard = ({ onLogout }) => {
       return <UserManagementView />;
     }
 
-    if (currentAdminPath === 'content-management') {
-      return isSuperAdmin ? <ContentManagerView /> : <Navigate to="/admin" replace />;
-    }
+    // if (currentAdminPath === 'content-management') {
+    //   return isSuperAdmin ? <ContentManagerView /> : <Navigate to="/admin" replace />;
+    // }
 
     if (currentAdminPath === 'roles') {
       return isSuperAdmin ? <RolesPermissionsView /> : <Navigate to="/admin" replace />;
@@ -123,7 +122,7 @@ const Sidebar = ({ onLogout, isSuperAdmin }) => {
     { path: '/admin/users', icon: Users, label: 'User Management' },
     ...(isSuperAdmin
       ? [
-          { path: '/admin/content-management', icon: FileJson, label: 'Content' },
+          // { path: '/admin/content-management', icon: FileJson, label: 'Content' },
           { path: '/admin/roles', icon: Shield, label: 'Roles & Permissions' },
         ]
       : []),
