@@ -63,10 +63,12 @@ export const updateApplicationStatus = async (req, res) => {
 
 export const createAdminUser = async (req, res) => {
   try {
-    const { fullname, email, phone, role } = req.body;
+    const { fullName, fullname, email, phone, role = "team" } = req.body;
+
+    const normalizedFullName = fullName || fullname || "";
 
     const user = await User.create({
-      fullname,
+      fullName: normalizedFullName,
       email,
       phone,
       role,

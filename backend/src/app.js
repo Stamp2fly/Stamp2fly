@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import applicationRoutes from "./routes/application.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import checklistRoutes from "./routes/checklist.routes.js";
@@ -8,6 +9,12 @@ import authRoutes from "./routes/auth.routes.js";
 
 const app = express();
 
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // test route

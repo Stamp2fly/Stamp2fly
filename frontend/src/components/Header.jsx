@@ -1,7 +1,7 @@
 import { useLocation } from "react-router-dom";
 import React from "react";
 import { motion } from "framer-motion";
-import { Phone, Mail } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,25 @@ function Header(props) {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const isHomePage = location.pathname === "/";
+
+	let authUser = null;
+	try {
+		authUser = JSON.parse(localStorage.getItem("authUser") || "null");
+	} catch {
+		authUser = null;
+	}
+
+	const fullName = authUser?.fullName?.trim() || "";
+	const isLoggedIn = Boolean(localStorage.getItem("authToken"));
+	const displayName = fullName || authUser?.phone || "User";
+
+	const handleLogout = () => {
+		localStorage.removeItem("authToken");
+		localStorage.removeItem("authUser");
+		localStorage.removeItem("isAdminAuthenticated");
+		navigate("/login", { replace: true });
+	};
+
 	return (
 		<header className="bg-white/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-200">
 			<div className="max-w-7xl mx-auto px-4 lg:px-8">
@@ -48,6 +67,39 @@ function Header(props) {
 
 					{/* RIGHT - Contact Button */}
 					<div className="flex items-center">
+						{isLoggedIn ? (
+							<div className="hidden md:flex items-center gap-2 mr-3">
+								<div className="flex items-center rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 bg-white">
+									<User className="h-4 w-4 mr-2 text-gray-500" />
+									{displayName}
+								</div>
+								<Button variant="outline" className="rounded-lg px-3" onClick={handleLogout}>
+									<LogOut className="h-4 w-4 mr-2" />
+									Logout
+								</Button>
+							</div>
+						) : (
+							<div className="hidden md:flex items-center gap-2 mr-2">
+								<Button asChild variant="outline" className="rounded-lg px-4">
+									<Link to="/login">Login</Link>
+								</Button>
+								<Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-4">
+									<Link to="/signup">Sign Up</Link>
+								</Button>
+							</div>
+						)}
+
+						{isLoggedIn && (
+							<div className="md:hidden mr-2 flex items-center gap-1">
+								<div className="flex items-center rounded-md border border-gray-200 px-2 py-1 text-xs font-medium text-gray-700 bg-white max-w-[120px] truncate">
+									<User className="h-3.5 w-3.5 mr-1 text-gray-500 shrink-0" />
+									<span className="truncate">{displayName}</span>
+								</div>
+								<Button variant="outline" size="sm" className="px-2" onClick={handleLogout}>
+									<LogOut className="h-3.5 w-3.5" />
+								</Button>
+							</div>
+						)}
 
 						{/* Desktop Button */}
 						<Button
