@@ -6,6 +6,7 @@ import checklistRoutes from "./routes/checklist.routes.js";
 import countryRoutes from "./routes/country.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import faqRoutes from "./routes/faq.routes.js";
+import blogRoutes from "./routes/blog.routes.js";
 
 
 const app = express();
@@ -40,5 +41,8 @@ app.use("/api/auth", authRoutes);
 
 // faq routes
 app.use("/api/faqs", faqRoutes);
+
+// blog routes
+app.use("/api/blogs", blogRoutes);
 
 export default app;

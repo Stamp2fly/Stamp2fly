@@ -11,6 +11,8 @@ import ConsultationPage from '@/pages/ConsultationPage';
 import PaymentPage from '@/pages/PaymentPage';
 import AuthPage from '@/pages/AuthPage';
 import UserDashboard from '@/pages/UserDashboard';
+import BlogsPage from '@/pages/BlogsPage';
+import BlogDetailsPage from '@/pages/BlogDetailsPage.jsx';
 import { Toaster } from '@/components/ui/toaster';
 import { VisaProvider } from '@/contexts/VisaContext';
 import { ApplicationProvider } from '@/contexts/ApplicationContext';
@@ -156,6 +158,8 @@ function App() {
                   <Route path="/financial-documents" element={<Navigate to="/apply" replace />} />
                   <Route path="/faq" element={<FaqPage />} />
                   <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/blogs" element={<BlogsPage />} />
+                  <Route path="/blogs/:slug" element={<BlogDetailsPage />} />
                   <Route path="/payment" element={<PaymentPage />} />
                   <Route path="/login" element={<AuthPage />} />
                   <Route path="/signup" element={<AuthPage />} />

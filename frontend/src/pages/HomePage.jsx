@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Header from "@/components/Header";
 import VisaSearch from "@/components/VisaSearch";
@@ -38,6 +38,7 @@ import {
   APPLICANT_TYPE_OPTIONS,
 } from "@/constants/applicantTypes.js";
 import WhatsAppButton from "../components/WhatsAppButton";
+import { getPublishedBlogs } from "@/api/blogApi";
 
 const toSlug = (value) => value.toLowerCase().replace(/\s+/g, "-");
 const COUNTRY_SCENIC_QUERIES = {
@@ -55,6 +56,8 @@ const countryImageUrl = (country) =>
   `https://source.unsplash.com/900x600/?${encodeURIComponent(COUNTRY_SCENIC_QUERIES[country] || `${country} famous landmark travel`)}`;
 const scenicFallbackImage =
   "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80";
+const blogFallbackImage =
+  "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1200&q=80";
 
 const getChecklistItemsByApplicantType = (countryData, applicantType) => {
   const baseItems = countryData?.checklist?.base || [];
@@ -79,6 +82,7 @@ function HomePage() {
   const [modalDestination, setModalDestination] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [applicantType, setApplicantType] = useState("employed");
+  const [latestBlogs, setLatestBlogs] = useState([]);
 
   const destinations = useMemo(() => Object.keys(visaData), [visaData]);
 
@@ -152,6 +156,19 @@ function HomePage() {
       }
     }
   }, [search, destinations]);
+
+  useEffect(() => {
+    const fetchLatestBlogs = async () => {
+      try {
+        const blogs = await getPublishedBlogs();
+        setLatestBlogs((blogs || []).slice(0, 3));
+      } catch {
+        setLatestBlogs([]);
+      }
+    };
+
+    fetchLatestBlogs();
+  }, []);
 
   const handleApply = (destinationName) => {
     navigate("/pricing", {
@@ -600,7 +617,7 @@ function HomePage() {
                         }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/55 via-slate-900/10 to-transparent" />
-                      <div className="absolute bottom-3 left-3 text-white text-xs font-medium tracking-wide bg-white/15 backdrop-blur px-2 py-1 rounded-md">
+                      <div className="absolute bottom-3 left-3 text-slate-800 text-xs font-medium tracking-wide bg-white/90 px-2 py-1 rounded-md shadow-sm">
                         Explore {country}
                       </div>
                     </div>
@@ -618,6 +635,56 @@ function HomePage() {
                 ))}
               </div>
             </div>
+          </div>
+        </section>
+
+        <section id="blogs" className="py-12 sm:py-20 bg-slate-50 border-t border-slate-200">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="flex items-end justify-between mb-6">
+              <div>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">Latest from our Blog</h2>
+                <p className="mt-2 text-sm text-gray-600">
+                  Curated travel insights, visa updates, and practical guidance from our team.
+                </p>
+              </div>
+              <Link to="/blogs" className="text-sm font-medium text-blue-700 hover:text-blue-800">
+                View all blogs
+              </Link>
+            </div>
+
+            {latestBlogs.length === 0 ? (
+              <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center text-sm text-slate-500">
+                Blog posts will appear here once published by the team.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {latestBlogs.map((blog) => (
+                  <article key={blog._id} className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+                    <img
+                      src={blog.coverImage || blogFallbackImage}
+                      alt={blog.title}
+                      className="h-44 w-full object-cover"
+                      onError={(event) => {
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = blogFallbackImage;
+                      }}
+                    />
+                    <div className="p-5">
+                      <p className="text-xs text-slate-500 mb-2">
+                        {blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString() : "Published"}
+                      </p>
+                      <h3 className="text-lg font-semibold text-slate-900 line-clamp-2">{blog.title}</h3>
+                      <p className="mt-2 text-sm text-slate-600 line-clamp-3">
+                        {blog.excerpt || "Read the full blog for detailed insights and updates."}
+                      </p>
+                      <Link to={`/blogs/${blog.slug}`} className="inline-flex mt-4 text-sm font-medium text-blue-700 hover:text-blue-800">
+                        Read article
+                      </Link>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
           </div>
         </section>
         <WhatsAppButton />

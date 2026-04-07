@@ -279,7 +279,7 @@ function ApplicationPage() {
             <Button
               onClick={() => (hasPricingInfo ? navigate('/pricing', { state: applicationState }) : navigate('/'))}
               variant="outline"
-              className="mb-8 bg-white/80"
+              className="mb-8 bg-white"
             >
               {hasPricingInfo ? <ArrowLeft className="w-4 h-4 mr-2" /> : <Home className="w-4 h-4 mr-2" />}
               {hasPricingInfo ? 'Back to Pricing' : 'Back to Home'}
@@ -379,7 +379,7 @@ function ApplicationPage() {
                             <Label>Marital Status</Label>
                             <Select value={traveler.maritalStatus} onValueChange={(value) => updateTraveler(traveler.id, 'maritalStatus', value)}>
                               <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
-                              <SelectContent className="bg-white opacity-100">
+                              <SelectContent className="bg-white">
                                 <SelectItem value="single">Single</SelectItem>
                                 <SelectItem value="married">Married</SelectItem>
                                 <SelectItem value="divorced">Divorced</SelectItem>
@@ -391,7 +391,7 @@ function ApplicationPage() {
                             <Label>Occupation</Label>
                             <Select value={traveler.occupation} onValueChange={(value) => updateTraveler(traveler.id, 'occupation', value)}>
                               <SelectTrigger><SelectValue placeholder="Select occupation" /></SelectTrigger>
-                              <SelectContent className="bg-white opacity-100">
+                              <SelectContent className="bg-white">
                                 <SelectItem value="employed">Employed</SelectItem>
                                 <SelectItem value="self-employed">Self-Employed</SelectItem>
                                 <SelectItem value="freelancer">Freelancer</SelectItem>
@@ -405,7 +405,7 @@ function ApplicationPage() {
                             <Label>Sponsorship</Label>
                             <Select value={traveler.sponsorship} onValueChange={(value) => updateTraveler(traveler.id, 'sponsorship', value)}>
                               <SelectTrigger><SelectValue /></SelectTrigger>
-                              <SelectContent className="bg-white opacity-100">
+                              <SelectContent className="bg-white">
                                 <SelectItem value="self">Self-Sponsored</SelectItem>
                                 <SelectItem value="sponsored">Sponsored by someone</SelectItem>
                               </SelectContent>

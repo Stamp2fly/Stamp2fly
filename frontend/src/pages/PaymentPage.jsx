@@ -207,7 +207,7 @@ function PaymentPage() {
             <Button
               onClick={() => navigate('/apply', { state: applicationData })}
               variant="outline"
-              className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm"
+              className="flex items-center space-x-2 bg-white"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Application</span>

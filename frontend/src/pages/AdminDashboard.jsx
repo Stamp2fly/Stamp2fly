@@ -13,6 +13,7 @@ import ChecklistManagerView from '@/components/Admin/ChecklistManagerView';
 import FaqManagerView from '@/components/Admin/FaqManagerView';
 import UserManagementView from '@/components/Admin/UserManagementView';
 import RolesPermissionsView from '@/components/Admin/RolesPermissionsView';
+import BlogManagementView from '@/components/Admin/BlogManagementView.jsx';
 
 const normalizeRole = (role) => String(role || '').toLowerCase().replace(/[\s-]+/g, '_');
 
@@ -73,6 +74,10 @@ const AdminDashboard = ({ onLogout }) => {
       return <UserManagementView />;
     }
 
+    if (currentAdminPath === 'blogs') {
+      return <BlogManagementView />;
+    }
+
     // if (currentAdminPath === 'content-management') {
     //   return isSuperAdmin ? <ContentManagerView /> : <Navigate to="/admin" replace />;
     // }
@@ -112,6 +117,10 @@ const Sidebar = ({ onLogout, isSuperAdmin }) => {
   const mainNav = [
     { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/admin/applications', icon: FileText, label: 'Applications' },
+  ];
+
+  const blogNav = [
+    { path: '/admin/blogs', icon: FileJson, label: 'Blogs' },
   ];
 
   const contentNav = [
@@ -164,6 +173,7 @@ const Sidebar = ({ onLogout, isSuperAdmin }) => {
       </div>
       <nav className="flex-1 py-4 space-y-2 overflow-y-auto">
         <NavGroup items={mainNav} />
+        <NavGroup title="Blog" items={blogNav} />
         <NavGroup title="Content" items={contentNav} />
       </nav>
       <div className="px-4 py-4 border-t border-slate-700/50">
@@ -180,7 +190,7 @@ const Sidebar = ({ onLogout, isSuperAdmin }) => {
 };
 
 const AdminHeader = ({ displayName, roleText }) => (
-  <header className="bg-white/80 backdrop-blur-sm h-20 border-b flex items-center justify-between px-8 sticky top-0 z-30">
+  <header className="bg-white h-20 border-b flex items-center justify-between px-8 sticky top-0 z-30">
     <div>
       {/* Breadcrumbs or dynamic page title can be added here */}
     </div>

@@ -57,7 +57,7 @@ function ConsultationPage() {
                         </motion.div>
 
                         <motion.div
-                            className="mt-12 bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg p-8 border border-gray-200"
+                            className="mt-12 bg-white rounded-2xl shadow-lg p-8 border border-gray-200"
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: 0.2 }}

@@ -64,7 +64,7 @@ function VisaSearch() {
   return (
     <div className="w-full px-4 sm:px-0">
       <div className="w-full max-w-4xl mx-auto">
-        <div className="bg-white/80 backdrop-blur-xl border border-gray-200 
+        <div className="bg-white border border-gray-200 
         rounded-2xl sm:rounded-full 
         p-4 sm:p-2 
         shadow-lg 
@@ -113,8 +113,7 @@ function VisaSearch() {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="absolute top-full mt-2 w-full 
-                bg-white rounded-xl shadow-lg border z-50 overflow-hidden"
+                className="absolute top-full mt-2 w-full bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden"
               >
                 <div className="p-3">
                   <input

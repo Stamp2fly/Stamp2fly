@@ -95,3 +95,23 @@ export const createAdminUser = async (payload) => {
 	return response.data;
 };
 
+export const getAllBlogsAdmin = async () => {
+	const response = await apiClient.get('/blogs/admin/all');
+	return response.data;
+};
+
+export const createBlogPost = async (payload) => {
+	const response = await apiClient.post('/blogs', payload);
+	return response.data;
+};
+
+export const updateBlogPost = async (id, payload) => {
+	const response = await apiClient.put(`/blogs/${id}`, payload);
+	return response.data;
+};
+
+export const deleteBlogPost = async (id) => {
+	const response = await apiClient.delete(`/blogs/${id}`);
+	return response.data;
+};
+

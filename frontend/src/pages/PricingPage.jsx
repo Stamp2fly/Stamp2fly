@@ -213,7 +213,7 @@ function PricingPage() {
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ delay: 0.4, duration: 0.5 }}
-							className="mt-8 sm:mt-12 bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-md border"
+							className="mt-8 sm:mt-12 bg-white p-8 rounded-2xl shadow-md border"
 						>
 							<h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
 								What's Included in Our Service
