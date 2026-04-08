@@ -11,9 +11,6 @@ import {
   ChevronRight,
   Clock,
   Download,
-  ExternalLink,
-  FileText,
-  HelpCircle,
 } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { useVisa } from "@/contexts/VisaContext";
@@ -40,24 +37,42 @@ import {
 import WhatsAppButton from "../components/WhatsAppButton";
 import { getPublishedBlogs } from "@/api/blogApi";
 
-const toSlug = (value) => value.toLowerCase().replace(/\s+/g, "-");
-const COUNTRY_SCENIC_QUERIES = {
-  "United Arab Emirates": "Burj Khalifa Dubai skyline",
-  Australia: "Sydney Opera House harbor",
-  Singapore: "Marina Bay Sands skyline",
-  "United States": "Statue of Liberty New York skyline",
-  "United Kingdom": "Big Ben London",
-  Canada: "CN Tower Toronto skyline",
-  India: "Gateway of India Mumbai",
-  Taiwan: "Taipei 101 skyline",
+const toSlug = (value) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const COUNTRY_IMAGE_ALIASES = {
+  "United Arab Emirates": "uae",
 };
 
-const countryImageUrl = (country) =>
-  `https://source.unsplash.com/900x600/?${encodeURIComponent(COUNTRY_SCENIC_QUERIES[country] || `${country} famous landmark travel`)}`;
-const scenicFallbackImage =
-  "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80";
+const DEFAULT_RECENT_COUNTRY_LIMIT = 12;
+const scenicFallbackImage = "https://wallpaperaccess.com/full/2787932.jpg";
 const blogFallbackImage =
-  "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1200&q=80";
+  "https://png.pngtree.com/thumb_back/fh260/background/20220624/pngtree-flat-lay-of-passport-white-plane-model-and-computer-laptop-on-pastel-blueyellow-and-pink-color-background-and-blank-white-paper-with-copy-space-travel-visa-and-vacation-concept-photo-image_31995348.jpg";
+
+const countryImageModules = import.meta.glob(
+  "../assets/images/*.{png,jpg,jpeg,webp,avif}",
+  { eager: true, import: "default" }
+);
+
+const getCountryImage = (country) => {
+  const normalizedName = toSlug(COUNTRY_IMAGE_ALIASES[country] || country);
+
+  const match = Object.entries(countryImageModules).find(([filePath]) => {
+    const fileName = filePath
+      .split("/")
+      .pop()
+      ?.replace(/\.[^.]+$/, "");
+    return fileName === normalizedName;
+  });
+
+  return match?.[1] || scenicFallbackImage;
+};
+
+const formatCountryName = (name) => name.toLowerCase().replace(/\s+/g, "-");
 
 const getChecklistItemsByApplicantType = (countryData, applicantType) => {
   const baseItems = countryData?.checklist?.base || [];
@@ -93,7 +108,7 @@ function HomePage() {
     }
 
     return destinations.filter((country) =>
-      country.toLowerCase().includes(query),
+      country.toLowerCase().includes(query)
     );
   }, [destinations, checklistSearchTerm]);
 
@@ -103,13 +118,13 @@ function HomePage() {
 
   const recentCountries = useMemo(() => {
     const adminSelected = destinations.filter(
-      (country) => visaData[country]?.isRecent,
+      (country) => visaData[country]?.isRecent
     );
     if (adminSelected.length > 0) {
       return adminSelected;
     }
 
-    return destinations.slice(0, 8);
+    return destinations.slice(0, DEFAULT_RECENT_COUNTRY_LIMIT);
   }, [destinations, visaData]);
 
   const panoramaCountries = useMemo(() => {
@@ -123,11 +138,11 @@ function HomePage() {
   const modalCountryData = modalDestination ? visaData[modalDestination] : null;
   const selectedChecklistItems = useMemo(
     () => getChecklistItemsByApplicantType(selectedCountryData, applicantType),
-    [selectedCountryData, applicantType],
+    [selectedCountryData, applicantType]
   );
   const modalChecklistItems = useMemo(
     () => getChecklistItemsByApplicantType(modalCountryData, applicantType),
-    [modalCountryData, applicantType],
+    [modalCountryData, applicantType]
   );
 
   useEffect(() => {
@@ -140,8 +155,7 @@ function HomePage() {
 
     const matchedDestination = destinations.find(
       (country) =>
-        toSlug(country) === destinationFromUrl ||
-        country === destinationFromUrl,
+        toSlug(country) === destinationFromUrl || country === destinationFromUrl
     );
 
     if (matchedDestination) {
@@ -197,7 +211,7 @@ function HomePage() {
     const query = checklistSearchTerm.trim().toLowerCase();
 
     const exactMatch = destinations.find(
-      (country) => country.toLowerCase() === query,
+      (country) => country.toLowerCase() === query
     );
     const targetDestination = exactMatch || filteredDestinations[0] || "";
 
@@ -223,8 +237,8 @@ function HomePage() {
     const margin = 48;
     const contentWidth = pageWidth - margin * 2;
     const lineHeight = 18;
-    const applicantTypeLabel = APPLICANT_TYPE_LABELS[applicantType] ||
-      applicantType;
+    const applicantTypeLabel =
+      APPLICANT_TYPE_LABELS[applicantType] || applicantType;
 
     let cursorY = margin;
     const ensureSpace = (requiredHeight = lineHeight) => {
@@ -248,13 +262,13 @@ function HomePage() {
     doc.text(
       `Visa Type: ${selectedCountryData.options?.[0]?.name || "Tourist Visa"}`,
       margin,
-      cursorY,
+      cursorY
     );
     cursorY += 16;
     doc.text(
       `Generated: ${new Date().toLocaleDateString("en-IN")}`,
       margin,
-      cursorY,
+      cursorY
     );
     cursorY += 24;
 
@@ -272,7 +286,9 @@ function HomePage() {
         ? doc.splitTextToSize(`- ${item.description}`, contentWidth - 12)
         : [];
 
-      ensureSpace((titleLines.length + descriptionLines.length + 1) * lineHeight);
+      ensureSpace(
+        (titleLines.length + descriptionLines.length + 1) * lineHeight
+      );
       doc.text(titleLines, margin, cursorY);
       cursorY += titleLines.length * lineHeight;
 
@@ -361,11 +377,10 @@ function HomePage() {
           {JSON.stringify(organizationSchema)}
         </script>
       </Helmet>
-
       <Header />
 
       <main>
-        {/* ================= HERO SECTION ================= */}
+        {/*HERO SECTION*/}
         <section
           className="relative min-h-[100vh] flex flex-col items-center justify-center text-center bg-cover bg-center"
           style={{ backgroundImage: "url('/world-map.png')" }}
@@ -411,34 +426,50 @@ function HomePage() {
           </div>
         </section>
 
-        <section id="checklist" className="py-12 sm:py-20 md:py-28 bg-blue-50">
+        {/* CHECKLIST */}
+        <section
+          id="checklist"
+          className="py-16 sm:py-24 bg-gradient-to-b from-blue-50 to-white"
+        >
           <div className="max-w-6xl mx-auto px-4">
-            <div className="text-center">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">
+            {/* HEADER */}
+            <div className="text-center max-w-2xl mx-auto">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-gray-900 tracking-tight">
                 Visa Checklist
               </h2>
-              <p className="mt-3 sm:mt-4 md:mt-6 text-xs sm:text-sm md:text-base lg:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                Search your destination and instantly view a quick summary with
-                the required checklist.
+              <p className="mt-4 text-sm sm:text-base text-gray-600 leading-relaxed">
+                Enter your destination and get a complete visa checklist
+                instantly.
               </p>
             </div>
 
-            <div className="mt-8 bg-white rounded-2xl shadow-md border border-gray-100 p-6 md:p-8">
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:items-end">
-                <div className="md:col-span-8">
-                  <p className="text-xs text-gray-500 mb-2">
-                    Search destination
-                  </p>
+            {/* SEARCH CARD */}
+            <div className="mt-10 bg-white/80 backdrop-blur-md rounded-3xl shadow-lg border border-gray-200 p-6 md:p-8">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-5 md:items-end">
+                {/* INPUT */}
+                <div className="md:col-span-7">
+                  <label className="text-xs text-gray-500 mb-2 block">
+                    Destination
+                  </label>
                   <Input
                     type="text"
                     value={checklistSearchTerm}
                     onChange={(e) => setChecklistSearchTerm(e.target.value)}
-                    placeholder="Type destination (e.g., Singapore, UAE, Canada)"
+                    placeholder="e.g., Singapore, UAE, Canada"
+                    className="rounded-xl h-11 border-gray-300"
                   />
                 </div>
-                <div className="md:col-span-4">
-                  <Select value={applicantType} onValueChange={setApplicantType}>
-                    <SelectTrigger className="w-full">
+
+                {/* SELECT */}
+                <div className="md:col-span-3">
+                  <label className="text-xs text-gray-500 mb-2 block border-gray-400">
+                    Applicant Type
+                  </label>
+                  <Select
+                    value={applicantType}
+                    onValueChange={setApplicantType}
+                  >
+                    <SelectTrigger className="w-full rounded-xl h-11">
                       <SelectValue placeholder="Select Type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -450,18 +481,21 @@ function HomePage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="md:col-span-12 flex md:justify-start">
+
+                {/* CTA */}
+                <div className="md:col-span-2">
                   <Button
                     onClick={handleShowChecklist}
-                    className="w-full md:w-full md:min-w-[220px] bg-blue-600 hover:bg-blue-700 text-white"
+                    className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-md"
                   >
-                    Show Checklist
+                    Show
                   </Button>
                 </div>
               </div>
 
+              {/* SUGGESTIONS */}
               {checklistSearchTerm.trim() && (
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-5 flex flex-wrap gap-2">
                   {filteredDestinations.slice(0, 8).map((country) => (
                     <button
                       key={country}
@@ -470,7 +504,7 @@ function HomePage() {
                         setChecklistSearchTerm(country);
                         setHasSearchedChecklist(true);
                       }}
-                      className="px-3 py-1.5 rounded-full border border-blue-200 text-blue-700 text-sm hover:bg-blue-50 transition"
+                      className="px-4 py-1.5 rounded-full bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100 transition shadow-sm"
                     >
                       {visaData[country]?.flag} {country}
                     </button>
@@ -478,48 +512,52 @@ function HomePage() {
                 </div>
               )}
 
+              {/* ERROR */}
               {checklistSearchTerm.trim() &&
                 filteredDestinations.length === 0 && (
-                  <p className="mt-4 text-sm text-red-600">
-                    No destination found. Try a different spelling.
+                  <p className="mt-4 text-sm text-red-500">
+                    No destination found. Try again.
                   </p>
                 )}
             </div>
 
+            {/* RESULTS */}
             {hasSearchedChecklist && selectedCountryData && (
-              <div className="mt-8 bg-white rounded-2xl shadow-md border border-gray-100 p-6 md:p-8">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-gray-100 pb-5 mb-5">
+              <div className="mt-10 bg-white rounded-3xl shadow-xl border border-gray-100 p-6 md:p-8">
+                {/* TOP BAR */}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b pb-6 mb-6">
                   <div>
-                    <h3 className="text-xl md:text-2xl font-bold text-gray-900">
+                    <h3 className="text-2xl font-semibold text-gray-900">
                       {selectedCountryData.flag} {selectedDestination}
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {selectedCountryData.options?.[0]?.name || "Tourist Visa"}{" "}
-                      for Indian applicants
+                    <p className="text-sm text-gray-500 mt-1">
+                      {selectedCountryData.options?.[0]?.name || "Tourist Visa"}
                     </p>
                   </div>
-                  <div className="flex items-center text-sm text-gray-700 bg-blue-50 px-4 py-2 rounded-lg">
-                    <Clock className="h-4 w-4 mr-2 text-blue-600" />
+
+                  <div className="flex items-center text-sm bg-blue-50 text-blue-700 px-4 py-2 rounded-full">
+                    <Clock className="h-4 w-4 mr-2" />
                     {selectedCountryData.options?.[0]?.processingTime ||
                       "Varies"}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* CHECKLIST */}
                   <div className="lg:col-span-2">
-                    <h4 className="font-semibold text-gray-900 flex items-center mb-4">
-                      <FileText className="h-5 w-5 mr-2 text-blue-600" />
+                    <h4 className="font-semibold text-gray-900 mb-4">
                       Checklist
                     </h4>
-                    <ul className="space-y-3">
+
+                    <ul className="space-y-4">
                       {selectedChecklistItems.map((item) => (
-                        <li key={item.key} className="flex items-start">
-                          <CheckCircle className="h-5 w-5 mr-2 mt-0.5 text-green-600" />
+                        <li key={item.key} className="flex gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-500 mt-1" />
                           <div>
                             <p className="text-sm font-medium text-gray-800">
                               {item.name}
                             </p>
-                            <p className="text-xs text-gray-600">
+                            <p className="text-xs text-gray-500">
                               {item.description}
                             </p>
                           </div>
@@ -528,54 +566,40 @@ function HomePage() {
                     </ul>
                   </div>
 
+                  {/* SIDE PANEL */}
                   <div className="space-y-4">
-                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        <HelpCircle className="h-4 w-4 mr-2 text-blue-600" />
-                        Quick Summary
+                    <div className="bg-gray-50 border rounded-xl p-4">
+                      <h4 className="font-medium text-gray-900 mb-2">
+                        Quick Info
                       </h4>
-                      <p className="text-sm text-gray-700">
+                      <p className="text-sm text-gray-600">
                         Entry:{" "}
                         {selectedCountryData.options?.[0]?.entry || "Varies"}
                       </p>
-                      <p className="text-sm text-gray-700 mt-1">
+                      <p className="text-sm text-gray-600 mt-1">
                         Validity:{" "}
                         {selectedCountryData.options?.[0]?.validity || "Varies"}
                       </p>
-                      <p className="text-sm text-gray-700 mt-1">
+                      <p className="text-sm text-gray-600 mt-1">
                         Duration:{" "}
-                        {selectedCountryData.options?.[0]?.duration ||
-                          selectedCountryData.options?.[0]?.stay ||
-                          "Varies"}
+                        {selectedCountryData.options?.[0]?.duration || "Varies"}
                       </p>
                     </div>
-
-                    {selectedCountryData.source && (
-                      <a
-                        href={selectedCountryData.source}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-sm text-blue-700 hover:text-blue-800 font-medium"
-                      >
-                        Official Source
-                        <ExternalLink className="h-4 w-4 ml-1" />
-                      </a>
-                    )}
 
                     <Button
                       onClick={handleDownloadChecklistPdf}
                       variant="outline"
-                      className="w-full border-blue-200 text-blue-700 hover:bg-blue-50"
+                      className="w-full rounded-xl border-blue-200 text-blue-700 hover:bg-blue-50"
                     >
-                      Download Checklist PDF
+                      Download PDF
                       <Download className="h-4 w-4 ml-2" />
                     </Button>
 
                     <Button
                       onClick={() => handleApply(selectedDestination)}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                      className="w-full rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-md"
                     >
-                      Apply for {selectedDestination}
+                      Apply Now
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </div>
@@ -585,51 +609,61 @@ function HomePage() {
           </div>
         </section>
 
-        <section id="recent-countries" className="py-12 sm:py-20 bg-white">
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="flex items-end justify-between mb-6">
+        <section id="recent-countries" className="py-16 sm:py-24 bg-white">
+          <div className="max-w-7xl mx-auto px-4">
+            {/* HEADER */}
+            <div className="flex items-end justify-between mb-8">
               <div>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
+                <h2 className="text-3xl sm:text-4xl font-semibold text-gray-900 tracking-tight">
                   Recent Countries
                 </h2>
-                <p className="mt-2 text-sm text-gray-600">
-                  Click a country to view a quick requirements popup.
+                <p className="mt-2 text-sm text-gray-500">
+                  Explore visa requirements instantly
                 </p>
               </div>
             </div>
 
-            <div className="panorama-shell no-scrollbar pb-3">
-              <div className="panorama-track">
+            {/* SCROLL WRAPPER (IMPORTANT) */}
+            <div className="-mx-4 px-4 overflow-x-auto no-scrollbar">
+              <div className="flex gap-6 pb-3 snap-x snap-mandatory">
                 {panoramaCountries.map((country, index) => (
                   <button
                     key={`${country}-${index}`}
                     onClick={() => openCountryModal(country)}
-                    className="panorama-card min-w-[280px] sm:min-w-[320px] md:min-w-[360px] text-left bg-gradient-to-br from-white to-blue-50 border border-blue-100 rounded-2xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition"
+                    className="group snap-start min-w-[320px] sm:min-w-[380px] md:min-w-[420px] text-left rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-xl transition"
                   >
-                    <div className="relative w-full h-44 rounded-xl overflow-hidden bg-slate-100 border border-blue-100">
+                    {/* IMAGE */}
+                    <div className="relative h-52 sm:h-56 overflow-hidden">
                       <img
-                        src={countryImageUrl(country)}
-                        alt={`${country} travel view`}
-                        className="w-full h-full object-cover"
-                        onError={(event) => {
-                          event.currentTarget.onerror = null;
-                          event.currentTarget.src = scenicFallbackImage;
+                        src={getCountryImage(country)}
+                        alt={country}
+                        className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
+                        onError={(e) => {
+                          e.currentTarget.src = scenicFallbackImage;
                         }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/55 via-slate-900/10 to-transparent" />
-                      <div className="absolute bottom-3 left-3 text-slate-800 text-xs font-medium tracking-wide bg-white/90 px-2 py-1 rounded-md shadow-sm">
-                        Explore {country}
+
+                      {/* OVERLAY */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+
+                      {/* TEXT */}
+                      <div className="absolute bottom-4 left-4 text-white">
+                        <p className="text-xs opacity-80">Explore</p>
+                        <h3 className="text-xl font-semibold">{country}</h3>
                       </div>
                     </div>
-                    <h3 className="mt-3 text-lg font-semibold text-gray-900">
-                      {country}
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-600">
-                      {visaData[country]?.options?.[0]?.name || "Tourist Visa"}
-                    </p>
-                    <div className="mt-4 inline-flex items-center text-sm font-medium text-blue-700">
-                      View details
-                      <ChevronRight className="h-4 w-4 ml-1" />
+
+                    {/* CONTENT */}
+                    <div className="p-5">
+                      <p className="text-sm text-gray-600">
+                        {visaData[country]?.options?.[0]?.name ||
+                          "Tourist Visa"}
+                      </p>
+
+                      <div className="mt-3 flex items-center text-sm font-medium text-blue-600">
+                        View details
+                        <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition" />
+                      </div>
                     </div>
                   </button>
                 ))}
@@ -637,17 +671,26 @@ function HomePage() {
             </div>
           </div>
         </section>
-
-        <section id="blogs" className="py-12 sm:py-20 bg-slate-50 border-t border-slate-200">
+        {/* Latest Blogs */}
+        <section
+          id="blogs"
+          className="py-12 sm:py-20 bg-slate-50 border-t border-slate-200"
+        >
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex items-end justify-between mb-6">
               <div>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">Latest from our Blog</h2>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
+                  Latest from our Blog
+                </h2>
                 <p className="mt-2 text-sm text-gray-600">
-                  Curated travel insights, visa updates, and practical guidance from our team.
+                  Curated travel insights, visa updates, and practical guidance
+                  from our team.
                 </p>
               </div>
-              <Link to="/blogs" className="text-sm font-medium text-blue-700 hover:text-blue-800">
+              <Link
+                to="/blogs"
+                className="text-sm font-medium text-blue-700 hover:text-blue-800"
+              >
                 View all blogs
               </Link>
             </div>
@@ -659,25 +702,36 @@ function HomePage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 {latestBlogs.map((blog) => (
-                  <article key={blog._id} className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+                  <article
+                    key={blog._id}
+                    className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm"
+                  >
                     <img
                       src={blog.coverImage || blogFallbackImage}
                       alt={blog.title}
                       className="h-44 w-full object-cover"
                       onError={(event) => {
                         event.currentTarget.onerror = null;
-                        event.currentTarget.src = blogFallbackImage;
+                        event.currentTarget.src = scenicFallbackImage;
                       }}
                     />
                     <div className="p-5">
                       <p className="text-xs text-slate-500 mb-2">
-                        {blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString() : "Published"}
+                        {blog.publishedAt
+                          ? new Date(blog.publishedAt).toLocaleDateString()
+                          : "Published"}
                       </p>
-                      <h3 className="text-lg font-semibold text-slate-900 line-clamp-2">{blog.title}</h3>
+                      <h3 className="text-lg font-semibold text-slate-900 line-clamp-2">
+                        {blog.title}
+                      </h3>
                       <p className="mt-2 text-sm text-slate-600 line-clamp-3">
-                        {blog.excerpt || "Read the full blog for detailed insights and updates."}
+                        {blog.excerpt ||
+                          "Read the full blog for detailed insights and updates."}
                       </p>
-                      <Link to={`/blogs/${blog.slug}`} className="inline-flex mt-4 text-sm font-medium text-blue-700 hover:text-blue-800">
+                      <Link
+                        to={`/blogs/${blog.slug}`}
+                        className="inline-flex mt-4 text-sm font-medium text-blue-700 hover:text-blue-800"
+                      >
                         Read article
                       </Link>
                     </div>
@@ -740,7 +794,7 @@ function HomePage() {
 
               <Button
                 onClick={() => moveToChecklist(modalDestination)}
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               >
                 Use in Checklist Section
               </Button>
