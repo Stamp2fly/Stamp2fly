@@ -10,8 +10,6 @@ export const protect = async (req, res, next) => {
       return res.status(401).json({ message: "Not authorized" });
     }
 
-    // ✅ FIX: Use jsonwebtoken to verify the token YOU created
-    // Ensure process.env.JWT_SECRET matches your login controller
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY");
 
     // This contains { userId, role } because that's what you signed in the controller
