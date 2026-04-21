@@ -14,6 +14,7 @@ import FaqManagerView from '@/components/Admin/FaqManagerView';
 import UserManagementView from '@/components/Admin/UserManagementView';
 import RolesPermissionsView from '@/components/Admin/RolesPermissionsView';
 import BlogManagementView from '@/components/Admin/BlogManagementView.jsx';
+import FormFieldsView from '@/components/Admin/FormFieldsView.jsx';
 
 const normalizeRole = (role) => String(role || '').toLowerCase().replace(/[\s-]+/g, '_');
 
@@ -74,6 +75,10 @@ const AdminDashboard = ({ onLogout }) => {
       return <UserManagementView />;
     }
 
+    if (currentAdminPath === 'form-fields') {
+      return <FormFieldsView />;
+    }
+
     if (currentAdminPath === 'blogs') {
       return <BlogManagementView />;
     }
@@ -125,6 +130,7 @@ const Sidebar = ({ onLogout, isSuperAdmin }) => {
 
   const contentNav = [
     { path: '/admin/visa-management', icon: Briefcase, label: 'Visa Management' },
+    { path: '/admin/form-fields', icon: Settings, label: 'Form Engine' },
     { path: '/admin/checklists', icon: ListChecks, label: 'Checklists' },
     { path: '/admin/faqs', icon: HelpCircle, label: 'FAQ' },
     { path: '/admin/covering-letters', icon: FileSignature, label: 'Covering Letters' },

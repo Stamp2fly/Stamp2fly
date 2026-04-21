@@ -24,6 +24,7 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import { useApplication } from "@/contexts/ApplicationContext";
 import BackToHomeButton from "../components/BackHomePage";
+import { getActiveApplicationFields } from "@/api/applicationApi";
 
 const SECTIONS = [
   { id: "travel", title: "1. Travel Details" },
@@ -50,6 +51,34 @@ const fileInfo = (file) =>
   file
     ? { name: file.name, type: file.type, size: file.size, _file: file }
     : null;
+
+const toSerializableFieldValue = (value) => {
+  if (Array.isArray(value)) {
+    return value.map((item) =>
+      item && typeof item === "object" && item.name
+        ? { name: item.name, type: item.type || "", size: item.size || 0 }
+        : item
+    );
+  }
+
+  if (value && typeof value === "object" && value.name) {
+    return { name: value.name, type: value.type || "", size: value.size || 0 };
+  }
+
+  return value;
+};
+
+const hasDynamicValue = (field, value) => {
+  if (field.fieldType === "file") {
+    if (field.multiple) {
+      return Array.isArray(value) && value.length > 0;
+    }
+    return Boolean(value && value.name);
+  }
+
+  if (typeof value === "number") return true;
+  return String(value || "").trim().length > 0;
+};
 
 const formatText = (value) => {
   if (!value) return "-";
@@ -159,6 +188,9 @@ function ApplicationPage() {
   const [travelDates, setTravelDates] = useState({ from: "", to: "" });
   const [travelers, setTravelers] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState({});
+  const [dynamicFieldDefinitions, setDynamicFieldDefinitions] = useState([]);
+  const [dynamicApplicationValues, setDynamicApplicationValues] = useState({});
+  const [dynamicTravelerValues, setDynamicTravelerValues] = useState({});
   const didInitialize = useRef(false);
 
   useEffect(() => {
@@ -172,6 +204,12 @@ function ApplicationPage() {
         to: currentApplication.travelDates?.to || "",
       });
       setUploadedFiles(currentApplication.financialDocuments || {});
+      setDynamicApplicationValues(
+        currentApplication.dynamicFields?.application || {}
+      );
+      setDynamicTravelerValues(
+        currentApplication.dynamicFields?.travelers || {}
+      );
       return;
     }
 
@@ -187,8 +225,22 @@ function ApplicationPage() {
       ...applicationState,
       travelers: initialTravelers,
       travelDates: { from: "", to: "" },
+      dynamicFields: { application: {}, travelers: {} },
     });
   }, [applicationState, currentApplication, startApplication]);
+
+  useEffect(() => {
+    const loadDynamicFields = async () => {
+      try {
+        const fields = await getActiveApplicationFields();
+        setDynamicFieldDefinitions(fields || []);
+      } catch (error) {
+        console.error("Failed to load dynamic form fields", error);
+      }
+    };
+
+    loadDynamicFields();
+  }, []);
 
   const documentLists = useMemo(
     () =>
@@ -198,6 +250,56 @@ function ApplicationPage() {
       })),
     [travelers]
   );
+
+  const applicationTravelFields = useMemo(
+    () =>
+      dynamicFieldDefinitions.filter(
+        (field) => field.section === "travel" && field.target === "application"
+      ),
+    [dynamicFieldDefinitions]
+  );
+
+  const travelerTravelFields = useMemo(
+    () =>
+      dynamicFieldDefinitions.filter(
+        (field) => field.section === "travel" && field.target === "traveler"
+      ),
+    [dynamicFieldDefinitions]
+  );
+
+  const applicationFinancialFields = useMemo(
+    () =>
+      dynamicFieldDefinitions.filter(
+        (field) =>
+          field.section === "financial" && field.target === "application"
+      ),
+    [dynamicFieldDefinitions]
+  );
+
+  const travelerFinancialFields = useMemo(
+    () =>
+      dynamicFieldDefinitions.filter(
+        (field) => field.section === "financial" && field.target === "traveler"
+      ),
+    [dynamicFieldDefinitions]
+  );
+
+  const updateApplicationDynamicField = (fieldKey, value) => {
+    setDynamicApplicationValues((prev) => ({
+      ...prev,
+      [fieldKey]: value,
+    }));
+  };
+
+  const updateTravelerDynamicField = (travelerId, fieldKey, value) => {
+    setDynamicTravelerValues((prev) => ({
+      ...prev,
+      [travelerId]: {
+        ...(prev[travelerId] || {}),
+        [fieldKey]: value,
+      },
+    }));
+  };
 
   const completedRequired = useMemo(() => {
     let completed = 0;
@@ -222,8 +324,49 @@ function ApplicationPage() {
       });
     });
 
+    applicationTravelFields.forEach((field) => {
+      if (hasDynamicValue(field, dynamicApplicationValues[field.key]))
+        completed += 1;
+    });
+    applicationFinancialFields.forEach((field) => {
+      if (hasDynamicValue(field, dynamicApplicationValues[field.key]))
+        completed += 1;
+    });
+
+    travelers.forEach((traveler) => {
+      travelerTravelFields.forEach((field) => {
+        if (
+          hasDynamicValue(
+            field,
+            dynamicTravelerValues[traveler.id]?.[field.key]
+          )
+        )
+          completed += 1;
+      });
+      travelerFinancialFields.forEach((field) => {
+        if (
+          hasDynamicValue(
+            field,
+            dynamicTravelerValues[traveler.id]?.[field.key]
+          )
+        )
+          completed += 1;
+      });
+    });
+
     return completed;
-  }, [travelDates, travelers, documentLists, uploadedFiles]);
+  }, [
+    travelDates,
+    travelers,
+    documentLists,
+    uploadedFiles,
+    applicationTravelFields,
+    applicationFinancialFields,
+    travelerTravelFields,
+    travelerFinancialFields,
+    dynamicApplicationValues,
+    dynamicTravelerValues,
+  ]);
 
   const totalRequired = useMemo(() => {
     const travelerFields = 1 + travelers.length * 10;
@@ -231,8 +374,22 @@ function ApplicationPage() {
       (sum, list) => sum + list.documents.length,
       0
     );
-    return travelerFields + docs;
-  }, [travelers, documentLists]);
+    const dynamicApplicationCount =
+      applicationTravelFields.length + applicationFinancialFields.length;
+    const dynamicTravelerCount =
+      travelers.length *
+      (travelerTravelFields.length + travelerFinancialFields.length);
+    return (
+      travelerFields + docs + dynamicApplicationCount + dynamicTravelerCount
+    );
+  }, [
+    travelers,
+    documentLists,
+    applicationTravelFields,
+    applicationFinancialFields,
+    travelerTravelFields,
+    travelerFinancialFields,
+  ]);
 
   const progress =
     totalRequired === 0
@@ -266,6 +423,12 @@ function ApplicationPage() {
       Object.keys(next).forEach((key) => {
         if (key.startsWith(`traveler_${id}_`)) delete next[key];
       });
+      return next;
+    });
+
+    setDynamicTravelerValues((prev) => {
+      const next = { ...prev };
+      delete next[id];
       return next;
     });
   };
@@ -302,7 +465,37 @@ function ApplicationPage() {
         });
         return false;
       }
+
+      for (const field of travelerTravelFields) {
+        if (
+          field.required &&
+          !hasDynamicValue(
+            field,
+            dynamicTravelerValues[traveler.id]?.[field.key]
+          )
+        ) {
+          toast({
+            title: `Complete required field \"${field.label}\" for Traveler ${index + 1}.`,
+            variant: "destructive",
+          });
+          return false;
+        }
+      }
     }
+
+    for (const field of applicationTravelFields) {
+      if (
+        field.required &&
+        !hasDynamicValue(field, dynamicApplicationValues[field.key])
+      ) {
+        toast({
+          title: `Complete required field \"${field.label}\".`,
+          variant: "destructive",
+        });
+        return false;
+      }
+    }
+
     return true;
   };
 
@@ -321,6 +514,38 @@ function ApplicationPage() {
         }
       }
     }
+
+    for (const field of applicationFinancialFields) {
+      if (
+        field.required &&
+        !hasDynamicValue(field, dynamicApplicationValues[field.key])
+      ) {
+        toast({
+          title: `Upload or fill required field \"${field.label}\".`,
+          variant: "destructive",
+        });
+        return false;
+      }
+    }
+
+    for (const [index, traveler] of travelers.entries()) {
+      for (const field of travelerFinancialFields) {
+        if (
+          field.required &&
+          !hasDynamicValue(
+            field,
+            dynamicTravelerValues[traveler.id]?.[field.key]
+          )
+        ) {
+          toast({
+            title: `Upload or fill \"${field.label}\" for Traveler ${index + 1}.`,
+            variant: "destructive",
+          });
+          return false;
+        }
+      }
+    }
+
     return true;
   };
 
@@ -711,6 +936,75 @@ function ApplicationPage() {
                                 </SelectContent>
                               </Select>
                             </div>
+                            {travelerTravelFields.length > 0 && (
+                              <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 mt-4 border-t border-dashed border-gray-300">
+                                {travelerTravelFields.map((field) => (
+                                  <div key={field.key} className="space-y-2">
+                                    <Label className="flex items-center gap-1 text-emerald-700 font-medium">
+                                      {field.label}{" "}
+                                      {field.required && (
+                                        <span className="text-red-500">*</span>
+                                      )}
+                                    </Label>
+
+                                    {field.fieldType === "text" && (
+                                      <Input
+                                        className="bg-white border-emerald-100 focus:border-emerald-500"
+                                        placeholder={
+                                          field.placeholder ||
+                                          `Enter ${field.label}`
+                                        }
+                                        value={
+                                          dynamicTravelerValues[traveler.id]?.[
+                                            field.key
+                                          ] || ""
+                                        }
+                                        onChange={(e) =>
+                                          updateTravelerDynamicField(
+                                            traveler.id,
+                                            field.key,
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    )}
+
+                                    {field.fieldType === "dropdown" && (
+                                      <Select
+                                        value={
+                                          dynamicTravelerValues[traveler.id]?.[
+                                            field.key
+                                          ] || ""
+                                        }
+                                        onValueChange={(val) =>
+                                          updateTravelerDynamicField(
+                                            traveler.id,
+                                            field.key,
+                                            val
+                                          )
+                                        }
+                                      >
+                                        <SelectTrigger className="bg-white border-emerald-100">
+                                          <SelectValue
+                                            placeholder={
+                                              field.placeholder ||
+                                              "Select option"
+                                            }
+                                          />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-white">
+                                          {field.options?.map((opt) => (
+                                            <SelectItem key={opt} value={opt}>
+                                              {opt}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -942,7 +1236,10 @@ function ApplicationPage() {
             Please login to continue your application
           </p>
 
-          <Button onClick={() => navigate("/login")} className = "bg-blue-500 text-white hover:bg-blue-600 border border-2">
+          <Button
+            onClick={() => navigate("/login")}
+            className="bg-blue-500 text-white hover:bg-blue-600 border border-2"
+          >
             Go to Login
           </Button>
         </div>

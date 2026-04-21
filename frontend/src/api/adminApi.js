@@ -123,3 +123,23 @@ export const deleteBlogPost = async (id) => {
   const response = await apiClient.delete(`/blogs/${id}`);
   return response.data;
 };
+
+export const getApplicationFieldsAdmin = async () => {
+  const response = await apiClient.get("/application-fields/admin");
+  return response.data;
+};
+
+export const createApplicationField = async (payload) => {
+  const response = await apiClient.post("/application-fields/admin", payload);
+  return response.data;
+};
+
+export const updateApplicationField = async (id, payload) => {
+  const response = await apiClient.put(`/application-fields/admin/${id}`, payload);
+  return response.data;
+};
+
+export const deleteApplicationField = async (id) => {
+  const response = await apiClient.delete(`/application-fields/admin/${id}`);
+  return response.data;
+};

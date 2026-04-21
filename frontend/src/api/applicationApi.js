@@ -40,3 +40,8 @@ export const sendApplicationMessage = async (id, payload) => {
 	const response = await apiClient.post(`/applications/${id}/messages`, payload);
 	return response.data;
 };
+
+export const getActiveApplicationFields = async () => {
+	const response = await apiClient.get('/application-fields');
+	return response.data;
+};

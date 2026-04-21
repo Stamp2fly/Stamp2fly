@@ -135,6 +135,11 @@ const applicationSchema = new mongoose.Schema(
       documents: [String], // flexible
     },
 
+    dynamicFields: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+
     messages: [
       {
         senderRole: {
