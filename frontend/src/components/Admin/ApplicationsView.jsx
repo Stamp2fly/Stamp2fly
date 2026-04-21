@@ -443,7 +443,7 @@ const ApplicationDetailsModal = ({ application, isOpen, onClose, onApplicationUp
             />
             <Button
               onClick={handleSaveNote}
-              className="w-full bg-slate-800 hover:bg-slate-900"
+              className="w-full bg-slate-800 hover:bg-slate-900 text-white"
             >
               Save Note
             </Button>

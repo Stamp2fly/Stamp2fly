@@ -8,7 +8,6 @@ import authRoutes from "./routes/auth.routes.js";
 import faqRoutes from "./routes/faq.routes.js";
 import blogRoutes from "./routes/blog.routes.js";
 
-
 const app = express();
 
 app.use(

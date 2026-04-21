@@ -198,7 +198,7 @@ const AdminHeader = ({ displayName, roleText }) => (
        <button className="text-slate-500 hover:text-slate-800 relative">
         <Bell className="w-6 h-6" />
         <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-      </button>
+      </button> 
       <div className="flex items-center space-x-3 cursor-pointer group">
         <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
             <UserCircle className="w-6 h-6 text-slate-500" />

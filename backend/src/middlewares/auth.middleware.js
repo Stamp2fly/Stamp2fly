@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
+// import admin from "../utils/firebaseAdmin.js";
 
-export const protect = (req, res, next) => {
+
+export const protect = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];
 
@@ -8,13 +10,17 @@ export const protect = (req, res, next) => {
       return res.status(401).json({ message: "Not authorized" });
     }
 
-    const decoded = jwt.verify(token, "SECRET_KEY");
+    // ✅ FIX: Use jsonwebtoken to verify the token YOU created
+    // Ensure process.env.JWT_SECRET matches your login controller
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY");
 
-    req.user = decoded;
+    // This contains { userId, role } because that's what you signed in the controller
+    req.user = decoded; 
 
     next();
   } catch (error) {
-    res.status(401).json({ message: "Invalid token" });
+    console.error("JWT Verification Error:", error.message);
+    return res.status(401).json({ message: "Invalid token" });
   }
 };
 
