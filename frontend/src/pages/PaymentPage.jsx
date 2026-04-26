@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Lock } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Lock } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -48,6 +48,7 @@ function PaymentPage() {
   const [expiry, setExpiry] = useState('');
   const [cvv, setCvv] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const totalCost = applicationData.selectedPlans?.reduce((acc, plan) => acc + plan.price, 0) || 0;
   const currency = applicationData.selectedPlans?.[0]?.currency || 'USD';
@@ -181,7 +182,7 @@ function PaymentPage() {
         className: 'bg-emerald-600 text-white',
       });
 
-      navigate('/dashboard', { replace: true });
+      setIsSubmitted(true);
     } catch (error) {
       toast({
         title: 'Payment or submission failed',
@@ -230,85 +231,110 @@ function PaymentPage() {
               </p>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-white rounded-2xl shadow-lg border p-8"
-            >
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Order Summary</h3>
-                <div className="space-y-3">
-                  {applicationData.selectedPlans?.map(plan => (
-                    <div key={plan.id} className="flex justify-between text-gray-600">
-                      <span>{plan.name}</span>
-                      <span className="font-medium">{new Intl.NumberFormat('en-IN').format(plan.price)} {currency}</span>
+            {isSubmitted ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="bg-white rounded-2xl shadow-lg border p-8 text-center"
+              >
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                  <CheckCircle2 className="h-8 w-8" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900">Application Submitted</h3>
+                <p className="mt-3 text-gray-600">
+                  Your dummy payment was processed and the application has been submitted successfully.
+                </p>
+                <div className="mt-8 flex justify-center gap-3">
+                  <Button
+                    onClick={() => navigate('/dashboard', { replace: true })}
+                    className="bg-emerald-600 text-white hover:bg-emerald-700"
+                  >
+                    Go to Dashboard
+                  </Button>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="bg-white rounded-2xl shadow-lg border p-8"
+              >
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Order Summary</h3>
+                  <div className="space-y-3">
+                    {applicationData.selectedPlans?.map(plan => (
+                      <div key={plan.id} className="flex justify-between text-gray-600">
+                        <span>{plan.name}</span>
+                        <span className="font-medium">{new Intl.NumberFormat('en-IN').format(plan.price)} {currency}</span>
+                      </div>
+                    ))}
+                    <hr/>
+                    <div className="flex justify-between text-gray-900 font-bold text-xl">
+                      <span>Total</span>
+                      <span>{new Intl.NumberFormat('en-IN').format(totalCost)} {currency}</span>
                     </div>
-                  ))}
-                  <hr/>
-                  <div className="flex justify-between text-gray-900 font-bold text-xl">
-                    <span>Total</span>
-                    <span>{new Intl.NumberFormat('en-IN').format(totalCost)} {currency}</span>
                   </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                <div className="md:col-span-2">
-                  <Label htmlFor="card-holder">Card Holder Name</Label>
-                  <Input
-                    id="card-holder"
-                    value={cardHolderName}
-                    onChange={(event) => setCardHolderName(event.target.value)}
-                    placeholder="John Doe"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                  <div className="md:col-span-2">
+                    <Label htmlFor="card-holder">Card Holder Name</Label>
+                    <Input
+                      id="card-holder"
+                      value={cardHolderName}
+                      onChange={(event) => setCardHolderName(event.target.value)}
+                      placeholder="John Doe"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label htmlFor="card-number">Card Number</Label>
+                    <Input
+                      id="card-number"
+                      value={cardNumber}
+                      onChange={(event) => setCardNumber(event.target.value)}
+                      placeholder="4242 4242 4242 4242"
+                      maxLength={19}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="card-expiry">Expiry</Label>
+                    <Input
+                      id="card-expiry"
+                      value={expiry}
+                      onChange={(event) => setExpiry(event.target.value)}
+                      placeholder="MM/YY"
+                      maxLength={5}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="card-cvv">CVV</Label>
+                    <Input
+                      id="card-cvv"
+                      value={cvv}
+                      onChange={(event) => setCvv(event.target.value)}
+                      placeholder="123"
+                      maxLength={4}
+                    />
+                  </div>
                 </div>
-                <div className="md:col-span-2">
-                  <Label htmlFor="card-number">Card Number</Label>
-                  <Input
-                    id="card-number"
-                    value={cardNumber}
-                    onChange={(event) => setCardNumber(event.target.value)}
-                    placeholder="4242 4242 4242 4242"
-                    maxLength={19}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="card-expiry">Expiry</Label>
-                  <Input
-                    id="card-expiry"
-                    value={expiry}
-                    onChange={(event) => setExpiry(event.target.value)}
-                    placeholder="MM/YY"
-                    maxLength={5}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="card-cvv">CVV</Label>
-                  <Input
-                    id="card-cvv"
-                    value={cvv}
-                    onChange={(event) => setCvv(event.target.value)}
-                    placeholder="123"
-                    maxLength={4}
-                  />
-                </div>
-              </div>
 
-              <div className="mt-8">
-                <Button
-                  onClick={handlePayment}
-                  disabled={isProcessing}
-                  className="w-full bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-3"
-                >
-                  <Lock className="w-5 h-5" />
-                  <span>{isProcessing ? 'Processing...' : 'Pay Securely'}</span>
-                </Button>
-              </div>
-              <p className="text-center text-xs text-gray-500 mt-4">
-                Dummy secure gateway enabled. Replace provider in payment service for production integration.
-              </p>
-            </motion.div>
+                <div className="mt-8">
+                  <Button
+                    onClick={handlePayment}
+                    disabled={isProcessing}
+                    className="w-full bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-3"
+                  >
+                    <Lock className="w-5 h-5" />
+                    <span>{isProcessing ? 'Processing...' : 'Pay Securely'}</span>
+                  </Button>
+                </div>
+                <p className="text-center text-xs text-gray-500 mt-4">
+                  Dummy secure gateway enabled. Replace provider in payment service for production integration.
+                </p>
+              </motion.div>
+            )}
           </div>
         </section>
       </main>

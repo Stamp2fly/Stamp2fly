@@ -41,7 +41,9 @@ export const sendApplicationMessage = async (id, payload) => {
 	return response.data;
 };
 
-export const getActiveApplicationFields = async () => {
-	const response = await apiClient.get('/application-fields');
+export const getActiveApplicationFields = async (countryId) => {
+	const response = await apiClient.get('/application-fields', {
+		params: countryId ? { countryId } : undefined,
+	});
 	return response.data;
 };

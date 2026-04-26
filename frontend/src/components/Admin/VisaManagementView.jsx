@@ -573,7 +573,7 @@ const VisaManagementView = () => {
             >
               Cancel
             </Button>
-            <Button className="bg-slate-900 hover:bg-slate-800" onClick={handleAddCountry}>
+            <Button className="bg-slate-900 hover:bg-slate-800 text-white" onClick={handleAddCountry}>
               Add Country
             </Button>
           </DialogFooter>

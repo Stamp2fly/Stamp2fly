@@ -496,7 +496,7 @@ const ApplicationDetailsModal = ({ application, isOpen, onClose, onApplicationUp
               className="w-full"
               onClick={handleRequestDocument}
             >
-              <Paperclip className="mr-2 h-4 w-4" /> Request a Document
+              {/* <Paperclip className="mr-2 h-4 w-4" /> Request a Document */}
             </Button>
           </div>
         </div>

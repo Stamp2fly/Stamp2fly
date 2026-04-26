@@ -1,6 +1,4 @@
 import jwt from "jsonwebtoken";
-// import admin from "../utils/firebaseAdmin.js";
-
 
 export const protect = async (req, res, next) => {
   try {
@@ -12,7 +10,6 @@ export const protect = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "SECRET_KEY");
 
-    // This contains { userId, role } because that's what you signed in the controller
     req.user = decoded; 
 
     next();
@@ -22,6 +19,7 @@ export const protect = async (req, res, next) => {
   }
 };
 
+// Using rest parameters to allow for multiple roles to be passed in
 export const authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {

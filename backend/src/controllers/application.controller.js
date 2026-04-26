@@ -1,6 +1,8 @@
+import mongoose from "mongoose";
 import Application from "../models/application.model.js";
 import uploadToCloudinary from "../utils/uploadToCloudinary.js";
 import Checklist from "../models/checklist.model.js";
+import Country from "../models/country.model.js";
 
 
 // CREATE
@@ -134,58 +136,6 @@ export const getAllApplications = async (req, res) => {
   }
 };
 
-// export const submitApplication = async (req, res) => {
-//   try {
-//     const app = await Application.findById(req.params.id);
-
-//     if (!app) {
-//       return res.status(404).json({ message: "Application not found" });
-//     }
-
-//     // 🔥 VALIDATION BEFORE SUBMIT
-
-//     if (
-//       !app.fullName ||
-//       !app.age ||
-//       !app.phone ||
-//       !app.occupation ||
-//       !app.sponsorship
-//     ) {
-//       return res.status(400).json({
-//         message: "Please fill all traveller details",
-//       });
-//     }
-
-//     if (
-//       !app.documents?.passportFront ||
-//       !app.documents?.passportBack ||
-//       !app.documents?.passportPhoto
-//     ) {
-//       return res.status(400).json({
-//         message: "Please upload all required documents",
-//       });
-//     }
-
-//     if (!app.financialDetails?.documents?.length) {
-//       return res.status(400).json({
-//         message: "Please upload financial documents",
-//       });
-//     }
-
-//     // 🔥 All good → submit
-//     app.status = "submitted";
-
-//     await app.save();
-
-//     res.json({
-//       message: "Application submitted successfully",
-//       app,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
 export const submitApplication = async (req, res) => {
   try {
     const application = await Application.findById(req.params.id);
@@ -196,14 +146,26 @@ export const submitApplication = async (req, res) => {
 
     const normalizedOccupation = application.occupation === "employed" ? "salaried" : application.occupation;
 
+    const countryFilter = mongoose.Types.ObjectId.isValid(application.country)
+      ? { _id: application.country }
+      : { countryName: application.country };
+
+    const country = await Country.findOne(countryFilter);
+
+    if (!country) {
+      return res.status(400).json({
+        message: "Country not found for this application",
+      });
+    }
+
     // STEP 1: get checklist
     const baseChecklist = await Checklist.findOne({
-      country: application.country,
+      country: country._id,
       category: "base",
     });
 
     const specificChecklist = await Checklist.findOne({
-      country: application.country,
+      country: country._id,
       category: normalizedOccupation,
     });
 
