@@ -29,11 +29,50 @@ const services = [
 ];
 
 const ServicesPage = () => {
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.stamp2fly.com" },
+      { "@type": "ListItem", position: 2, name: "Services", item: "https://www.stamp2fly.com/services" },
+    ],
+  };
+
+  const servicesSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Stamp2Fly Visa Services",
+    itemListElement: services.map((service, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "Service",
+        name: service.name,
+        description: service.description,
+        provider: {
+          "@type": "LocalBusiness",
+          name: "Stamp2Fly",
+          url: "https://www.stamp2fly.com",
+        },
+      },
+    })),
+  };
+
   return (
     <>
       <Helmet>
-        <title>Our Services - Stamp2Fly</title>
-        <meta name="description" content="Explore the visa services offered by Stamp2Fly, from tourist and business visa applications to document verification and expert consultations." />
+        <title>Visa Processing Services | Tourist &amp; Business | Stamp2Fly</title>
+        <meta name="description" content="Stamp2Fly offers end-to-end visa processing services including tourist visa applications, business visas, document verification, and expert consultation." />
+        <link rel="canonical" href="https://www.stamp2fly.com/services" />
+        <meta property="og:title" content="Visa Processing Services | Stamp2Fly" />
+        <meta property="og:description" content="Stamp2Fly offers tourist visa, business visa, document verification, and expert consultation services across India." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://www.stamp2fly.com/services" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="Visa Processing Services | Stamp2Fly" />
+        <meta name="twitter:description" content="Stamp2Fly offers tourist visa, business visa, document verification, and expert consultation services across India." />
+        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(servicesSchema)}</script>
       </Helmet>
       <Header />
       <main>
@@ -45,10 +84,10 @@ const ServicesPage = () => {
               transition={{ duration: 0.5 }}
               className="mx-auto max-w-2xl lg:text-center"
             >
-              <h1 className="text-base font-semibold leading-7 text-emerald-600">What We Offer</h1>
-              <p className="mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+              <p className="text-base font-semibold leading-7 text-emerald-600">What We Offer</p>
+              <h1 className="mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
                 Expert Services for Every Traveler
-              </p>
+              </h1>
               <p className="mt-6 text-lg leading-8 text-gray-600">
                 We provide a comprehensive suite of services designed to handle every aspect of your visa application, ensuring a smooth and successful outcome.
               </p>

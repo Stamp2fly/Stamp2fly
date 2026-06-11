@@ -7,14 +7,29 @@ import { Users, Target, BookOpen } from "lucide-react";
 import BackToHomeButton from "../components/BackHomePage";
 
 const AboutUsPage = () => {
+	const breadcrumbSchema = {
+		"@context": "https://schema.org",
+		"@type": "BreadcrumbList",
+		itemListElement: [
+			{ "@type": "ListItem", position: 1, name: "Home", item: "https://www.stamp2fly.com" },
+			{ "@type": "ListItem", position: 2, name: "About Us", item: "https://www.stamp2fly.com/about" },
+		],
+	};
+
 	return (
 		<>
 			<Helmet>
-				<title>About Us - Stamp2Fly</title>
-				<meta
-					name="description"
-					content="Learn about Stamp2Fly's mission to simplify visa applications and make international travel more accessible for everyone."
-				/>
+				<title>About Stamp2Fly | Trusted Visa Partner Since 2020</title>
+				<meta name="description" content="Learn how Stamp2Fly simplifies visa applications for Indian travellers. Founded in 2020, we provide transparent, expert-guided visa processing services." />
+				<link rel="canonical" href="https://www.stamp2fly.com/about" />
+				<meta property="og:title" content="About Stamp2Fly | Trusted Visa Partner Since 2020" />
+				<meta property="og:description" content="Learn how Stamp2Fly simplifies visa applications for Indian travellers. Expert-guided visa processing since 2020." />
+				<meta property="og:type" content="website" />
+				<meta property="og:url" content="https://www.stamp2fly.com/about" />
+				<meta name="twitter:card" content="summary" />
+				<meta name="twitter:title" content="About Stamp2Fly | Trusted Visa Partner Since 2020" />
+				<meta name="twitter:description" content="Learn how Stamp2Fly simplifies visa applications for Indian travellers. Expert-guided visa processing since 2020." />
+				<script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
 			</Helmet>
 			<Header />
 			{/* <main>
@@ -93,13 +108,13 @@ const AboutUsPage = () => {
 							transition={{ duration: 0.6 }}
 							className="max-w-3xl mx-auto"
 						>
-							<h1 className="text-sm font-semibold text-emerald-600 uppercase tracking-wide">
+							<p className="text-sm font-semibold text-emerald-600 uppercase tracking-wide">
 								Our Story
-							</h1>
+							</p>
 
-							<h2 className="mt-4 text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
+							<h1 className="mt-4 text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
 								Making Travel Simple, One Visa at a Time
-							</h2>
+							</h1>
 
 							<p className="mt-6 text-lg text-gray-600 leading-relaxed">
 								We started Stamp2Fly with a simple goal: to eliminate confusion
@@ -120,13 +135,13 @@ const AboutUsPage = () => {
 								animate={{ opacity: 1, x: 0 }}
 								transition={{ duration: 0.7 }}
 							>
-								<h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wide">
+								<p className="text-sm font-semibold text-blue-600 uppercase tracking-wide">
 									Our Mission & Values
-								</h3>
-
-								<p className="mt-3 text-3xl font-bold text-gray-900 leading-snug">
-									Your Trusted Partner in Global Travel
 								</p>
+
+								<h2 className="mt-3 text-3xl font-bold text-gray-900 leading-snug">
+									Your Trusted Partner in Global Travel
+								</h2>
 
 								<div className="mt-8 space-y-8 text-gray-600">
 									<div className="flex items-start gap-4">

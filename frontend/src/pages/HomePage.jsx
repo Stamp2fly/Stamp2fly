@@ -306,76 +306,77 @@ function HomePage() {
     doc.save(`stamp2fly-${safeDestination}-checklist.pdf`);
   };
 
-  // Structured data for SEO
   const organizationSchema = {
     "@context": "https://schema.org",
-    "@type": "TravelAgency",
+    "@type": ["TravelAgency", "LocalBusiness"],
     name: "Stamp2Fly",
+    logo: {
+      "@type": "ImageObject",
+      url: "https://storage.googleapis.com/hostinger-horizons-assets-prod/ac7c5e33-833b-415b-87a1-38b5119ebfe9/d29307835e7b5249a2e33659a636a269.png",
+    },
     image:
       "https://storage.googleapis.com/hostinger-horizons-assets-prod/ac7c5e33-833b-415b-87a1-38b5119ebfe9/1e7b9ac90d11a07facf22532137e65d6.png",
     url: "https://www.stamp2fly.com",
     telephone: "+91 88501 89216",
+    email: "visa@stamp2fly.com",
     address: {
       "@type": "PostalAddress",
       streetAddress: "MASTER MIND 4, Office No A321, C.T.S No 1627, Royal Palm",
       addressLocality: "Goregaon East",
-      addressRegion: "Mumbai, Maharashtra",
+      addressRegion: "Maharashtra",
       postalCode: "400065",
       addressCountry: "IN",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: 19.1663,
+      longitude: 72.8526,
     },
     areaServed: {
       "@type": "Country",
       name: "India",
+    },
+    sameAs: [
+      "https://www.stamp2fly.com",
+    ],
+  };
+
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Stamp2Fly",
+    url: "https://www.stamp2fly.com",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: "https://www.stamp2fly.com/?destination={search_term_string}",
+      "query-input": "required name=search_term_string",
     },
   };
 
   return (
     <>
       <Helmet>
-        <title>
-          Visa Services in India | Fast & Simple Online Visa Assistance -
-          Stamp2Fly
-        </title>
+        <title>Stamp2Fly | Corporate &amp; B2B Visa Processing Partner</title>
         <meta
           name="description"
-          content="Apply for tourist and business visas online with Stamp2Fly. Fast processing, transparent pricing, and expert visa assistance across India. Get your visa hassle-free today!"
+          content="Stamp2Fly offers corporate & B2B visa processing across India. Expert assistance for tourist & business visas with fast turnaround and transparent pricing."
         />
-
         <meta
           name="keywords"
-          content="visa services, visa application, e-visa, fast visa, simple visa, visa online"
+          content="corporate visa processing India, B2B visa services, business visa application, visa processing Mumbai, tourist visa India, e-visa assistance"
         />
-        <meta
-          property="og:title"
-          content="Visa Services in India | Stamp2Fly"
-        />
-        <meta
-          property="og:description"
-          content="Fast and reliable visa assistance across India."
-        />
+        <meta property="og:title" content="Stamp2Fly | Corporate & B2B Visa Processing Partner" />
+        <meta property="og:description" content="Expert corporate & B2B visa processing across India. Fast turnaround, transparent pricing, and dedicated support." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.stamp2fly.com/" />
-        <meta
-          property="og:image"
-          content="https://www.stamp2fly.com/og-image.jpg"
-        />
+        <meta property="og:image" content="https://storage.googleapis.com/hostinger-horizons-assets-prod/ac7c5e33-833b-415b-87a1-38b5119ebfe9/1e7b9ac90d11a07facf22532137e65d6.png" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta
-          name="twitter:title"
-          content="Visa Services in India - Stamp2Fly"
-        />
-        <meta
-          name="twitter:description"
-          content="Apply for visas online with expert support."
-        />
-        <meta
-          name="twitter:image"
-          content="https://www.stamp2fly.com/og-image.jpg"
-        />
+        <meta name="twitter:title" content="Stamp2Fly | Corporate & B2B Visa Processing Partner" />
+        <meta name="twitter:description" content="Expert corporate & B2B visa processing across India. Fast turnaround and transparent pricing." />
+        <meta name="twitter:image" content="https://storage.googleapis.com/hostinger-horizons-assets-prod/ac7c5e33-833b-415b-87a1-38b5119ebfe9/1e7b9ac90d11a07facf22532137e65d6.png" />
         <link rel="canonical" href="https://www.stamp2fly.com/" />
-        <script type="application/ld+json">
-          {JSON.stringify(organizationSchema)}
-        </script>
+        <script type="application/ld+json">{JSON.stringify(organizationSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(websiteSchema)}</script>
       </Helmet>
       <Header />
 
@@ -636,7 +637,8 @@ function HomePage() {
                     <div className="relative h-52 sm:h-56 overflow-hidden">
                       <img
                         src={getCountryImage(country)}
-                        alt={country}
+                        alt={`${country} visa`}
+                        loading="lazy"
                         className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
                         onError={(e) => {
                           e.currentTarget.src = scenicFallbackImage;
@@ -709,6 +711,7 @@ function HomePage() {
                     <img
                       src={blog.coverImage || blogFallbackImage}
                       alt={blog.title}
+                      loading="lazy"
                       className="h-44 w-full object-cover"
                       onError={(event) => {
                         event.currentTarget.onerror = null;

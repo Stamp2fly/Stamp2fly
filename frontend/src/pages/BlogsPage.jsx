@@ -27,8 +27,16 @@ const BlogsPage = () => {
   return (
     <>
       <Helmet>
-        <title>Blog - Stamp2Fly</title>
-        <meta name="description" content="Read latest travel and visa insights from Stamp2Fly." />
+        <title>Visa Tips &amp; Travel Insights Blog | Stamp2Fly</title>
+        <meta name="description" content="Explore visa tips, country-specific travel guides, and policy updates from Stamp2Fly's expert team. Stay informed for hassle-free international travel." />
+        <link rel="canonical" href="https://www.stamp2fly.com/blogs" />
+        <meta property="og:title" content="Visa Tips & Travel Insights Blog | Stamp2Fly" />
+        <meta property="og:description" content="Explore visa tips, country-specific travel guides, and policy updates from Stamp2Fly's expert team." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://www.stamp2fly.com/blogs" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Visa Tips & Travel Insights Blog | Stamp2Fly" />
+        <meta name="twitter:description" content="Explore visa tips, country-specific travel guides, and policy updates from Stamp2Fly's expert team." />
       </Helmet>
 
       <Header />

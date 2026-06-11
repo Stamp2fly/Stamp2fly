@@ -79,12 +79,19 @@ const FaqPage = () => {
 	return (
 		<>
 			<Helmet>
-				<title>FAQ - Frequently Asked Questions | Stamp2Fly</title>
+				<title>Visa Application FAQs | Processing Times &amp; Docs | Stamp2Fly</title>
 				<meta
 					name="description"
-					content="Find answers to frequently asked questions about visa applications, document requirements, processing times, and payment on Stamp2Fly."
+					content="Find answers to common questions about visa applications, document requirements, processing times, fees, and expert support on Stamp2Fly. Serving all of India."
 				/>
 				<link rel="canonical" href="https://www.stamp2fly.com/faq" />
+				<meta property="og:title" content="Visa Application FAQs | Stamp2Fly" />
+				<meta property="og:description" content="Find answers to common questions about visa applications, document requirements, processing times, fees, and expert support on Stamp2Fly." />
+				<meta property="og:type" content="website" />
+				<meta property="og:url" content="https://www.stamp2fly.com/faq" />
+				<meta name="twitter:card" content="summary" />
+				<meta name="twitter:title" content="Visa Application FAQs | Stamp2Fly" />
+				<meta name="twitter:description" content="Find answers to common questions about visa applications, document requirements, and processing times on Stamp2Fly." />
 				<script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
 			</Helmet>
 			<Header />

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -75,11 +75,14 @@ function PricingPage() {
 	return (
 		<>
 			<Helmet>
-				<title>Visa Pricing for {searchData.destination} - Stamp2Fly</title>
+				<title>{searchData.destination ? `${searchData.destination} Visa Pricing & Options | Stamp2Fly` : 'Visa Pricing | Stamp2Fly'}</title>
 				<meta
 					name="description"
-					content={`Find out the pricing and requirements for a ${searchData.destination} visa.`}
+					content={searchData.destination ? `View ${searchData.destination} visa pricing, processing times, and requirements. Choose the right visa option and apply online with Stamp2Fly.` : 'View visa pricing, processing times, and requirements for all destinations. Apply online with Stamp2Fly.'}
 				/>
+				{searchData.destination && (
+					<link rel="canonical" href={`https://www.stamp2fly.com/pricing`} />
+				)}
 			</Helmet>
 
 			<Header />

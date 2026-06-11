@@ -32,12 +32,43 @@ const ContactPage = () => {
 	return (
 		<>
 			<Helmet>
-				<title>Contact Us - Stamp2Fly Visa Services</title>
-				<meta
-					name="description"
-					content="Get in touch with Stamp2Fly for 24/7 support regarding your visa application, document requirements, or any other inquiries. Contact us via phone, email, or visit our office."
-				/>
+				<title>Contact Stamp2Fly | Visa Services Mumbai India</title>
+				<meta name="description" content="Reach Stamp2Fly's visa experts by phone, email, or visit our Mumbai office. We offer 24/7 support for visa applications and document requirements." />
 				<link rel="canonical" href="https://www.stamp2fly.com/contact" />
+				<meta property="og:title" content="Contact Stamp2Fly | Visa Services Mumbai India" />
+				<meta property="og:description" content="Reach Stamp2Fly's visa experts by phone, email, or visit our Mumbai office for 24/7 visa application support." />
+				<meta property="og:type" content="website" />
+				<meta property="og:url" content="https://www.stamp2fly.com/contact" />
+				<meta name="twitter:card" content="summary" />
+				<meta name="twitter:title" content="Contact Stamp2Fly | Visa Services Mumbai India" />
+				<meta name="twitter:description" content="Reach Stamp2Fly's visa experts by phone, email, or visit our Mumbai office for 24/7 visa application support." />
+				<script type="application/ld+json">{JSON.stringify({
+					"@context": "https://schema.org",
+					"@type": "LocalBusiness",
+					name: "Stamp2Fly",
+					url: "https://www.stamp2fly.com",
+					telephone: "+91 88501 89216",
+					email: "visa@stamp2fly.com",
+					address: {
+						"@type": "PostalAddress",
+						streetAddress: "MASTER MIND 4, Office No A321, C.T.S No 1627, Royal Palm",
+						addressLocality: "Goregaon East",
+						addressRegion: "Maharashtra",
+						postalCode: "400065",
+						addressCountry: "IN",
+					},
+					geo: {
+						"@type": "GeoCoordinates",
+						latitude: 19.1663,
+						longitude: 72.8526,
+					},
+					openingHoursSpecification: {
+						"@type": "OpeningHoursSpecification",
+						dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+						opens: "09:00",
+						closes: "18:00",
+					},
+				})}</script>
 			</Helmet>
 
 			<Header />

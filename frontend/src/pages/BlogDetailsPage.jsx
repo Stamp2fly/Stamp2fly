@@ -29,8 +29,44 @@ const BlogDetailsPage = () => {
   return (
     <>
       <Helmet>
-        <title>{blog?.title ? `${blog.title} - Stamp2Fly Blog` : 'Blog - Stamp2Fly'}</title>
-        <meta name="description" content={blog?.excerpt || 'Read latest blog updates from Stamp2Fly.'} />
+        <title>{blog?.title ? `${blog.title} | Stamp2Fly Blog` : 'Blog | Stamp2Fly'}</title>
+        <meta name="description" content={blog?.excerpt || 'Read latest visa tips and travel insights from Stamp2Fly.'} />
+        {blog && <link rel="canonical" href={`https://www.stamp2fly.com/blogs/${slug}`} />}
+        {blog && <meta property="og:title" content={`${blog.title} | Stamp2Fly Blog`} />}
+        {blog && <meta property="og:description" content={blog.excerpt || 'Read the full article on Stamp2Fly.'} />}
+        {blog && <meta property="og:type" content="article" />}
+        {blog && <meta property="og:url" content={`https://www.stamp2fly.com/blogs/${slug}`} />}
+        {blog?.coverImage && <meta property="og:image" content={blog.coverImage} />}
+        <meta name="twitter:card" content="summary_large_image" />
+        {blog && <meta name="twitter:title" content={`${blog.title} | Stamp2Fly Blog`} />}
+        {blog && <meta name="twitter:description" content={blog.excerpt || 'Read the full article on Stamp2Fly.'} />}
+        {blog?.coverImage && <meta name="twitter:image" content={blog.coverImage} />}
+        {blog && (
+          <script type="application/ld+json">{JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: blog.title,
+            description: blog.excerpt,
+            ...(blog.coverImage && { image: blog.coverImage }),
+            datePublished: blog.publishedAt,
+            author: {
+              "@type": "Person",
+              name: blog.authorName || "Stamp2Fly Team",
+            },
+            publisher: {
+              "@type": "Organization",
+              name: "Stamp2Fly",
+              logo: {
+                "@type": "ImageObject",
+                url: "https://storage.googleapis.com/hostinger-horizons-assets-prod/ac7c5e33-833b-415b-87a1-38b5119ebfe9/d29307835e7b5249a2e33659a636a269.png",
+              },
+            },
+            mainEntityOfPage: {
+              "@type": "WebPage",
+              "@id": `https://www.stamp2fly.com/blogs/${slug}`,
+            },
+          })}</script>
+        )}
       </Helmet>
 
       <Header />
