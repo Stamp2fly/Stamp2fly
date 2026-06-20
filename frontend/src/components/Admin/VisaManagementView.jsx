@@ -30,7 +30,7 @@ import {
 import { useVisa } from "@/contexts/VisaContext";
 import { useNavigate } from "react-router-dom";
 import { APPLICANT_TYPE_OPTIONS } from "@/constants/applicantTypes.js";
-import { createCountryRecord, updateCountryRecord } from "@/api/adminApi";
+import { createCountryRecord, updateCountryRecord, deleteCountryRecord } from "@/api/adminApi";
 
 const normalizeOption = (option = {}) => ({
   ...option,
@@ -228,6 +228,42 @@ const VisaManagementView = () => {
     }
   };
 
+  const handleDeleteCountry = async () => {
+    if (!selectedCountry) return;
+    const countryData = localVisaData[selectedCountry] || {};
+
+    if (!countryData._id) {
+      toast({
+        title: "Cannot delete",
+        description: "This country hasn't been saved to the server yet.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${selectedCountry}? This cannot be undone.`,
+    );
+    if (!confirmDelete) return;
+
+    try {
+      await deleteCountryRecord(countryData._id);
+      await refreshVisaData();
+      setSelectedCountry("");
+      toast({
+        title: "Country deleted",
+        description: `${selectedCountry} has been removed.`,
+        className: "bg-green-500 text-white",
+      });
+    } catch (error) {
+      toast({
+        title: "Delete failed",
+        description: error?.response?.data?.message || "Could not delete country.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const currentData = localVisaData[selectedCountry] || {
     options: [],
     checklist: {},
@@ -308,6 +344,14 @@ const VisaManagementView = () => {
                 disabled={!selectedCountry}
               >
                 <ListChecks className="mr-2 h-4 w-4" /> Manage Checklist
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleDeleteCountry}
+                disabled={!selectedCountry || !localVisaData[selectedCountry]?._id}
+                className="text-red-600 border-red-200 hover:bg-red-50"
+              >
+                <Trash2 className="mr-2 h-4 w-4" /> Delete Country
               </Button>
             </div>
           </div>
