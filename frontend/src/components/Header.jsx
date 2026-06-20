@@ -1,15 +1,28 @@
-import { useLocation } from "react-router-dom";
 import React from "react";
 import { motion } from "framer-motion";
 import { LogOut, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 
 function Header(props) {
   const navigate = useNavigate();
   const location = useLocation();
   const isHomePage = location.pathname === "/";
+
+  const handleSectionNavigate = (sectionId) => (event) => {
+    event.preventDefault();
+
+    if (!isHomePage) {
+      navigate(`/#${sectionId}`);
+      return;
+    }
+
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.history.replaceState(null, "", `#${sectionId}`);
+    }
+  };
 
   let authUser = null;
   try {
@@ -169,22 +182,25 @@ function Header(props) {
               <>
                 <a
                   href="#apply"
+                  onClick={handleSectionNavigate("apply")}
                   className="text-gray-600 hover:text-blue-600 transition"
                 >
                   Apply Visa
                 </a>
                 <a
                   href="#checklist"
+                  onClick={handleSectionNavigate("checklist")}
                   className="text-gray-600 hover:text-blue-600 transition"
                 >
                   Visa Checklist
                 </a>
-                <Link
-                  to="#blog"
+                <a
+                  href="#blog"
+                  onClick={handleSectionNavigate("blog")}
                   className="text-gray-600 hover:text-blue-600 transition"
                 >
                   Blog
-                </Link>
+                </a>
                 {!isAdmin && (
                   <Link
                     to="/dashboard"

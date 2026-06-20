@@ -1,11 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { Save, Trash2, Edit, PlusCircle } from 'lucide-react';
+import { Save, Trash2, Edit, PlusCircle, ImagePlus } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { createBlogPost, deleteBlogPost, getAllBlogsAdmin, updateBlogPost } from '@/api/adminApi';
+import { createBlogPost, deleteBlogPost, getAllBlogsAdmin, updateBlogPost, uploadBlogImage } from '@/api/adminApi';
 
 const emptyForm = {
   title: '',
@@ -18,15 +20,89 @@ const emptyForm = {
 
 const BlogManagementView = () => {
   const { toast } = useToast();
+  const quillRef = useRef(null);
   const [blogs, setBlogs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
 
   const sortedBlogs = useMemo(
     () => [...blogs].sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt)),
     [blogs]
+  );
+
+  const insertImageToEditor = useCallback((imageUrl) => {
+    const editor = quillRef.current?.getEditor?.();
+
+    if (!editor) {
+      return;
+    }
+
+    const range = editor.getSelection(true);
+    const index = range ? range.index : editor.getLength();
+    editor.insertEmbed(index, 'image', imageUrl, 'user');
+    editor.setSelection(index + 1, 0);
+  }, []);
+
+  const handleImageUpload = useCallback(() => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+
+    input.onchange = async () => {
+      const file = input.files?.[0];
+
+      if (!file) {
+        return;
+      }
+
+      try {
+        setIsUploadingImage(true);
+        const { url } = await uploadBlogImage(file);
+        insertImageToEditor(url);
+        toast({
+          title: 'Image uploaded',
+          description: 'The image was inserted into the blog body.',
+          className: 'bg-emerald-600 text-white',
+        });
+      } catch (error) {
+        toast({
+          title: 'Image upload failed',
+          description: error?.response?.data?.message || 'Could not upload the image.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsUploadingImage(false);
+      }
+    };
+
+    input.click();
+  }, [insertImageToEditor, toast]);
+
+  const quillModules = useMemo(
+    () => ({
+      toolbar: {
+        container: [
+          [{ header: [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          [{ align: [] }],
+          ['link', 'image'],
+          ['clean'],
+        ],
+        handlers: {
+          image: handleImageUpload,
+        },
+      },
+    }),
+    [handleImageUpload]
+  );
+
+  const quillFormats = useMemo(
+    () => ['header', 'bold', 'italic', 'underline', 'strike', 'list', 'bullet', 'align', 'link', 'image'],
+    []
   );
 
   const fetchBlogs = useCallback(async () => {
@@ -205,13 +281,22 @@ const BlogManagementView = () => {
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">Content</label>
-            <textarea
-              value={form.content}
-              onChange={(event) => setForm((prev) => ({ ...prev, content: event.target.value }))}
-              rows={16}
-              className="w-full rounded-lg border p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Write blog content here..."
-            />
+            <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+              <ReactQuill
+                ref={quillRef}
+                theme="snow"
+                value={form.content}
+                onChange={(value) => setForm((prev) => ({ ...prev, content: value }))}
+                modules={quillModules}
+                formats={quillFormats}
+                placeholder="Write blog content here..."
+              />
+            </div>
+            <p className="mt-2 flex items-center gap-1 text-xs text-slate-500">
+              <ImagePlus className="h-3.5 w-3.5" />
+              Use the image button to upload and insert images into the article.
+            </p>
+            {isUploadingImage && <p className="mt-1 text-xs text-slate-500">Uploading image...</p>}
           </div>
         </div>
 

@@ -8,6 +8,7 @@ import authRoutes from "./routes/auth.routes.js";
 import faqRoutes from "./routes/faq.routes.js";
 import blogRoutes from "./routes/blog.routes.js";
 import applicationFieldRoutes from "./routes/applicationField.routes.js";
+import contactRoutes from "./routes/contact.routes.js";
 
 const app = express();
 
@@ -44,6 +45,9 @@ app.use("/api/faqs", faqRoutes);
 
 // blog routes
 app.use("/api/blogs", blogRoutes);
+
+// contact routes
+app.use("/api/contact", contactRoutes);
 
 // dynamic application field routes
 app.use("/api/application-fields", applicationFieldRoutes);

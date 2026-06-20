@@ -1,4 +1,5 @@
 import Blog from "../models/blog.model.js";
+import uploadToCloudinary from "../utils/uploadToCloudinary.js";
 
 const slugify = (value = "") =>
   value
@@ -27,7 +28,7 @@ export const getPublishedBlogs = async (req, res) => {
   try {
     const blogs = await Blog.find({ status: "published" })
       .sort({ publishedAt: -1, createdAt: -1 })
-      .select("title slug excerpt coverImage tags authorName publishedAt createdAt updatedAt");
+      .select("title slug excerpt content coverImage tags authorName publishedAt createdAt updatedAt");
 
     return res.json(blogs);
   } catch (error) {
@@ -53,6 +54,22 @@ export const getAllBlogsAdmin = async (req, res) => {
   try {
     const blogs = await Blog.find().sort({ updatedAt: -1 });
     return res.json(blogs);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const uploadBlogImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "Image file is required" });
+    }
+
+    const uploadedImage = await uploadToCloudinary(req.file, {
+      folder: "stamp2fly/blogs",
+    });
+
+    return res.status(201).json({ url: uploadedImage.secure_url });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

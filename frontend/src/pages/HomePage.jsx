@@ -675,7 +675,7 @@ function HomePage() {
         </section>
         {/* Latest Blogs */}
         <section
-          id="blogs"
+          id="blog"
           className="py-12 sm:py-20 bg-slate-50 border-t border-slate-200"
         >
           <div className="max-w-6xl mx-auto px-4">

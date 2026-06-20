@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getPublishedBlogBySlug } from '@/api/blogApi';
@@ -106,9 +107,12 @@ const BlogDetailsPage = () => {
                     ))}
                   </div>
                 )}
-                <div className="prose max-w-none mt-6 text-slate-700 whitespace-pre-line">
-                  {blog.content}
-                </div>
+                <div
+                  className="prose max-w-none mt-6 text-slate-700 prose-headings:text-slate-900 prose-img:rounded-2xl prose-img:shadow-sm"
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(blog.content || ''),
+                  }}
+                />
               </div>
             </article>
           )}

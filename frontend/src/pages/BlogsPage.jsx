@@ -1,11 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getPublishedBlogs } from '@/api/blogApi';
+import { ArrowRight, CalendarDays, User2 } from 'lucide-react';
 
 const fallbackImage = 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1200&q=80';
+
+const getPreviewText = (blog) => {
+  const source = blog.excerpt || blog.content || 'Read full article for more insights.';
+  const plainText = DOMPurify.sanitize(source, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!plainText) {
+    return 'Read full article for more insights.';
+  }
+
+  return plainText.length > 160 ? `${plainText.slice(0, 157).trim()}...` : plainText;
+};
 
 const BlogsPage = () => {
   const [blogs, setBlogs] = useState([]);
@@ -42,8 +57,13 @@ const BlogsPage = () => {
       <Header />
       <main className="bg-slate-50 min-h-screen py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">Stamp2Fly Blog</h1>
-          <p className="text-slate-600 mb-8">Visa tips, country updates, and travel guidance from our team.</p>
+          <div className="mb-10 rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-8 md:p-10 text-white shadow-xl">
+            <p className="text-xs uppercase tracking-[0.25em] text-slate-300">Stamp2Fly Journal</p>
+            <h1 className="mt-3 text-3xl md:text-5xl font-bold max-w-3xl">Visa tips, travel guidance, and practical updates in one place.</h1>
+            <p className="mt-4 max-w-2xl text-slate-300">
+              Read short updates or open the full article to see formatted text, headings, and images.
+            </p>
+          </div>
 
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -58,24 +78,52 @@ const BlogsPage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {blogs.map((blog) => (
-                <article key={blog._id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200">
-                  <img
-                    src={blog.coverImage || fallbackImage}
-                    alt={blog.title}
-                    className="h-44 w-full object-cover"
-                    onError={(event) => {
-                      event.currentTarget.onerror = null;
-                      event.currentTarget.src = fallbackImage;
-                    }}
-                  />
-                  <div className="p-5">
-                    <p className="text-xs text-slate-500 mb-2">
-                      {blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString() : 'Published'}
-                    </p>
-                    <h2 className="text-lg font-semibold text-slate-900 line-clamp-2">{blog.title}</h2>
-                    <p className="text-sm text-slate-600 mt-2 line-clamp-3">{blog.excerpt || 'Read full article for more insights.'}</p>
-                    <Link to={`/blogs/${blog.slug}`} className="inline-flex mt-4 text-sm font-medium text-blue-700 hover:text-blue-800">
+                <article key={blog._id} className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                  <div className="relative">
+                    <img
+                      src={blog.coverImage || fallbackImage}
+                      alt={blog.title}
+                      className="h-56 w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                      onError={(event) => {
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = fallbackImage;
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent" />
+                    <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-3 text-xs text-white">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 backdrop-blur">
+                        <CalendarDays className="h-3.5 w-3.5" />
+                        {blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString() : 'Published'}
+                      </span>
+                      {blog.authorName && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 backdrop-blur">
+                          <User2 className="h-3.5 w-3.5" />
+                          {blog.authorName}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="p-6">
+                    <h2 className="text-xl font-semibold text-slate-900 line-clamp-2 leading-tight">{blog.title}</h2>
+                    <p className="mt-3 text-sm leading-6 text-slate-600 line-clamp-4">{getPreviewText(blog)}</p>
+
+                    {blog.tags?.length > 0 && (
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {blog.tags.slice(0, 4).map((tag) => (
+                          <span key={tag} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-slate-600">
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <Link
+                      to={`/blogs/${blog.slug}`}
+                      className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-900 transition-colors hover:text-blue-700"
+                    >
                       Read article
+                      <ArrowRight className="h-4 w-4" />
                     </Link>
                   </div>
                 </article>

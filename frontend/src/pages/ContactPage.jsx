@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
 import { Phone, Mail, MapPin, Send } from "lucide-react";
@@ -12,21 +12,50 @@ import WhatsAppButton from "../components/WhatsAppButton";
 import MapEmbed from "../components/MapEmbed";
 import BackButton from "../components/BackButton";
 import BackToHomeButton from "../components/BackHomePage";
+import { sendContactMessage } from "@/api/contactApi";
 
 const ContactPage = () => {
-	// To integrate a toast notification system that provides users with immediate feedback when they submit the contact form, enhancing user experience and engagement.
 	const { toast } = useToast();
+	const [formData, setFormData] = useState({
+		fullName: "",
+		email: "",
+		message: "",
+	});
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	const handleSubmit = (e) => {
+	const handleChange = (event) => {
+		const { name, value } = event.target;
+		setFormData((prev) => ({ ...prev, [name]: value }));
+	};
+
+	const handleSubmit = async (e) => {
 		e.preventDefault();
-		// Using of the toast notification system
-		toast({
-			title: "Message Sent!",
-			description:
-				"Thank you for contacting us. We'll get back to you shortly.",
-			className: "bg-green-500 text-white",
-		});
-		e.target.reset();
+
+		try {
+			setIsSubmitting(true);
+			await sendContactMessage(formData);
+			toast({
+				title: "Message Sent!",
+				description:
+					"Thank you for contacting us. We'll get back to you shortly.",
+				className: "bg-green-500 text-white",
+			});
+			setFormData({
+				fullName: "",
+				email: "",
+				message: "",
+			});
+		} catch (error) {
+			toast({
+				title: "Failed to send message",
+				description:
+					error?.response?.data?.message ||
+					"Please try again in a moment.",
+				variant: "destructive",
+			});
+		} finally {
+			setIsSubmitting(false);
+		}
 	};
 
 	return (
@@ -177,9 +206,12 @@ const ContactPage = () => {
 										<Label htmlFor="name">Full Name</Label>
 										<Input
 											id="name"
+											name="fullName"
 											type="text"
 											placeholder="John Doe"
 											className="mt-2 rounded-xl"
+											value={formData.fullName}
+											onChange={handleChange}
 											required
 										/>
 									</div>
@@ -188,9 +220,12 @@ const ContactPage = () => {
 										<Label htmlFor="email">Email Address</Label>
 										<Input
 											id="email"
+											name="email"
 											type="email"
 											placeholder="you@example.com"
 											className="mt-2 rounded-xl"
+											value={formData.email}
+											onChange={handleChange}
 											required
 										/>
 									</div>
@@ -199,19 +234,23 @@ const ContactPage = () => {
 										<Label htmlFor="message">Message</Label>
 										<textarea
 											id="message"
+											name="message"
 											rows="5"
 											placeholder="Tell us how we can help..."
 											className="mt-2 w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+											value={formData.message}
+											onChange={handleChange}
 											required
 										/>
 									</div>
 
 									<Button
 										type="submit"
+										disabled={isSubmitting}
 										className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg rounded-xl"
 									>
 										<Send className="mr-2 h-5 w-5" />
-										Send Message
+										{isSubmitting ? "Sending..." : "Send Message"}
 									</Button>
 								</form>
 							</motion.div>

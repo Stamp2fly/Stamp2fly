@@ -114,6 +114,19 @@ export const createBlogPost = async (payload) => {
   return response.data;
 };
 
+export const uploadBlogImage = async (file) => {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const response = await apiClient.post("/blogs/upload-image", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return response.data;
+};
+
 export const updateBlogPost = async (id, payload) => {
   const response = await apiClient.put(`/blogs/${id}`, payload);
   return response.data;
