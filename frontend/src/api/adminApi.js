@@ -104,6 +104,11 @@ export const createAdminUser = async (payload) => {
   return response.data;
 };
 
+export const deleteAdminUser = async (id) => {
+  const response = await apiClient.delete(`/admin/users/${id}`);
+  return response.data;
+};
+
 export const getAllBlogsAdmin = async () => {
   const response = await apiClient.get("/blogs/admin/all");
   return response.data;

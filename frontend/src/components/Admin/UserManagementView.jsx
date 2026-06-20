@@ -5,22 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Eye, Edit, Trash2, KeyRound, Search, PlusCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getNormalUsers, createAdminUser } from "@/api/adminApi";
+import { deleteAdminUser, getNormalUsers } from "@/api/adminApi";
 
 const UserManagementView = () => {
   const authUser = JSON.parse(localStorage.getItem("authUser") || "null");
@@ -28,13 +19,6 @@ const UserManagementView = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [teamForm, setTeamForm] = useState({
-    fullName: "",
-    phone: "",
-    email: "",
-    role: "team",
-  });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -66,6 +50,32 @@ const UserManagementView = () => {
     });
   };
 
+  const handleDeleteUser = async (userId, userName) => {
+    if (!userId) return;
+
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${userName}? This action cannot be undone.`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      await deleteAdminUser(userId);
+      setUsers((prev) => (prev || []).filter((user) => user._id !== userId));
+      toast({
+        title: "User deleted",
+        description: `${userName} has been removed.`,
+        className: "bg-emerald-600 text-white",
+      });
+    } catch (error) {
+      toast({
+        title: "Delete failed",
+        description: error?.response?.data?.message || "Could not delete user.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const filteredUsers = users.filter(
     (user) =>
       (user.fullName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -74,42 +84,7 @@ const UserManagementView = () => {
         .includes(searchTerm.toLowerCase())
   );
 
-  const handleCreateTeam = async (e) => {
-    e.preventDefault();
-
-    if (!isSuperAdmin || teamForm.role !== "team") {
-      toast({
-        title: "Access denied",
-        description: "Only super admin can create team accounts.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const newTeamMember = await createAdminUser({
-        fullName: teamForm.fullName,
-        phone: teamForm.phone,
-        email: teamForm.email,
-        role: "team",
-      });
-
-      toast({
-        title: "Team member created",
-        description: `${newTeamMember.fullName} has been added as team member.`,
-        className: "bg-emerald-600 text-white",
-      });
-
-      setTeamForm({ fullName: "", phone: "", email: "", role: "team" });
-      setIsDialogOpen(false);
-    } catch (error) {
-      toast({
-        title: "Failed to create team member",
-        description: error?.response?.data?.message || "An error occurred.",
-        variant: "destructive",
-      });
-    }
-  };
+  
 
   if (loading) {
     return (
@@ -137,88 +112,6 @@ const UserManagementView = () => {
     >
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-slate-800">User Management</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          {isSuperAdmin && (
-            <DialogTrigger asChild>
-              <Button className="bg-slate-800 hover:bg-slate-900 text-white">
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Team Member
-              </Button>
-            </DialogTrigger>
-          )}
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create Team Account</DialogTitle>
-              <DialogDescription>
-                Super admin can add team members here. The team member can then
-                login using phone + OTP.
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleCreateTeam} className="space-y-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Full Name
-                </label>
-                <Input
-                  value={teamForm.fullName}
-                  onChange={(e) =>
-                    setTeamForm((prev) => ({
-                      ...prev,
-                      fullName: e.target.value,
-                    }))
-                  }
-                  placeholder="Team member full name"
-                  required
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Phone
-                </label>
-                <Input
-                  type="tel"
-                  value={teamForm.phone}
-                  onChange={(e) =>
-                    setTeamForm((prev) => ({ ...prev, phone: e.target.value }))
-                  }
-                  placeholder="Phone number"
-                  required
-                />
-              </div>
-              {/* <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Email (optional)</label>
-                <Input
-                  type="email"
-                  value={teamForm.email}
-                  onChange={(e) => setTeamForm((prev) => ({ ...prev, email: e.target.value }))}
-                  placeholder="Email address"
-                />
-              </div> */}
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Role
-                </label>
-                <Select
-                  value={teamForm.role}
-                  onValueChange={(value) =>
-                    setTeamForm((prev) => ({ ...prev, role: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="team">Team</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <DialogFooter>
-                <Button type="submit" className="w-full sm:w-auto">
-                  Create Team Member
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
       </div>
 
       <div className="bg-white p-4 rounded-xl shadow-sm">
@@ -291,7 +184,7 @@ const UserManagementView = () => {
                   </td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex justify-center space-x-1">
-                      <Button
+                      {/* <Button
                         variant="ghost"
                         size="icon"
                         onClick={() =>
@@ -299,8 +192,8 @@ const UserManagementView = () => {
                         }
                       >
                         <Eye className="h-5 w-5 text-slate-500" />
-                      </Button>
-                      <Button
+                      </Button> */}
+                      {/* <Button
                         variant="ghost"
                         size="icon"
                         onClick={() =>
@@ -311,12 +204,12 @@ const UserManagementView = () => {
                         }
                       >
                         <KeyRound className="h-5 w-5 text-slate-500" />
-                      </Button>
+                      </Button> */}
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() =>
-                          handleAction("Deactivate", user.fullName || "User")
+                          handleDeleteUser(user._id, user.fullName || "User")
                         }
                       >
                         <Trash2 className="h-5 w-5 text-red-500" />

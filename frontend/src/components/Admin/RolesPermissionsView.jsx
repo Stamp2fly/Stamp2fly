@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PlusCircle, Trash2, Save, User, Shield, Search } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { getTeamMembers } from '@/api/adminApi';
+import { getTeamMembers, createAdminUser, deleteAdminUser } from '@/api/adminApi';
 import {
   Dialog,
   DialogContent,
@@ -14,11 +14,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const RolesPermissionsView = () => {
   const [teamMembers, setTeamMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const authUser = JSON.parse(localStorage.getItem('authUser') || 'null');
+  const isSuperAdmin = authUser?.role === 'super_admin';
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [teamForm, setTeamForm] = useState({ fullName: '', phone: '', email: '', role: 'team' });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -50,11 +55,67 @@ const RolesPermissionsView = () => {
     });
   };
 
-  const handleDeleteUser = (userId, userName) => {
-    toast({
-      title: "Delete not implemented",
-      description: `Deleting ${userName} is not yet implemented.`,
-    });
+  const handleCreateTeam = async (e) => {
+    e.preventDefault();
+
+    if (!isSuperAdmin || teamForm.role !== 'team') {
+      toast({
+        title: 'Access denied',
+        description: 'Only super admin can create team accounts.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const payload = {
+        fullName: teamForm.fullName,
+        phone: teamForm.phone,
+        role: 'team',
+      };
+      if (teamForm.email && teamForm.email.trim() !== '') payload.email = teamForm.email.trim();
+
+      const newTeamMember = await createAdminUser(payload);
+
+      setTeamMembers((prev) => [newTeamMember, ...(prev || [])]);
+
+      toast({
+        title: 'Team member created',
+        description: `${newTeamMember.fullName} has been added as team member.`,
+        className: 'bg-emerald-600 text-white',
+      });
+
+      setTeamForm({ fullName: '', phone: '', email: '', role: 'team' });
+      setIsDialogOpen(false);
+    } catch (error) {
+      toast({
+        title: 'Failed to create team member',
+        description: error?.response?.data?.message || 'An error occurred.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeleteUser = async (userId, userName) => {
+    if (!userId) return;
+    const confirmDelete = window.confirm(`Are you sure you want to delete ${userName}? This action cannot be undone.`);
+    if (!confirmDelete) return;
+
+    try {
+      await deleteAdminUser(userId);
+      setTeamMembers((prev) => (prev || []).filter((m) => m._id !== userId));
+      toast({
+        title: 'User deleted',
+        description: `${userName} has been removed.`,
+        className: 'bg-green-500 text-white',
+      });
+    } catch (error) {
+      toast({
+        title: 'Delete failed',
+        description: error?.response?.data?.message || 'Could not delete user.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleSave = () => {
@@ -87,9 +148,58 @@ const RolesPermissionsView = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-800">Roles & Permissions</h1>
         <div className="flex space-x-4">
-            {/* <Button variant="outline" onClick={handleAddUser}>
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Admin User
-            </Button> */}
+            {isSuperAdmin && (
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add Team Member
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create Team Account</DialogTitle>
+                    <DialogDescription>
+                      Super admin can add team members here. The team member can then login using phone + OTP.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleCreateTeam} className="space-y-4">
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">Full Name</label>
+                      <Input
+                        value={teamForm.fullName}
+                        onChange={(e) => setTeamForm((prev) => ({ ...prev, fullName: e.target.value }))}
+                        placeholder="Team member full name"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">Phone</label>
+                      <Input
+                        type="tel"
+                        value={teamForm.phone}
+                        onChange={(e) => setTeamForm((prev) => ({ ...prev, phone: e.target.value }))}
+                        placeholder="Phone number"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">Role</label>
+                      <Select value={teamForm.role} onValueChange={(value) => setTeamForm((prev) => ({ ...prev, role: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="team">Team</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <DialogFooter>
+                      <Button type="submit" className="w-full sm:w-auto">Create Team Member</Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            )}
             <Button onClick={handleSave} className="bg-slate-800 hover:bg-slate-900 text-white">
               <Save className="mr-2 h-4 w-4" /> Save Changes
             </Button>
